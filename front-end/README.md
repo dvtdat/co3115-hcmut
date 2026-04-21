@@ -1,14 +1,14 @@
 # GreenBite — Healthy Food E-Commerce Frontend
 
-Single-vendor storefront for healthy food products. React + Vite frontend backed by a NestJS REST API.
+Single-vendor storefront for healthy food products. All data is mocked in-memory — no backend required.
 
----
+**Fixed credentials:**
+- `admin@test.com` / `admin123` — admin role
+- `user@test.com` / `user123` — user role
 
 ## Tech Stack
 
-React 19 · TypeScript · Vite · TanStack Router · TanStack Query · Zustand · openapi-fetch · shadcn/ui · Tailwind CSS v4 · i18next
-
----
+React 19 · TypeScript · Vite · TanStack Router · TanStack Query · TanStack Table · Zustand · shadcn/ui · Tailwind CSS v4 · react-hook-form + Zod · i18next (EN, DE) · Recharts
 
 ## Getting Started
 
@@ -17,55 +17,27 @@ npm install
 npm run dev        # dev server at http://localhost:3000
 ```
 
-Requires a running backend at `:3500`. See `.env.development` for environment variables.
+## Pages
 
----
+| Area      | Pages                                                              |
+| --------- | ------------------------------------------------------------------ |
+| Public    | Home, Products, Product Detail, About                              |
+| Account   | Login, Cart, Orders, Order Detail, Profile                         |
+| Checkout  | Delivery, Review, Payment, Success, Order Confirmation             |
+| Admin     | Dashboard, Products, Categories, Orders, Order Detail, Customers, Vouchers |
 
 ## Commands
 
 ```bash
-npm run dev              # Start dev server
-npm run build            # Production build (tsc + vite)
+npm run dev              # start dev server
+npm run build            # production build (tsc + vite)
+npm run preview          # preview production build locally
 npm run lint             # ESLint
 npm run format           # Prettier
 
-# API types (requires backend running at :3500)
-npm run gen-api          # Regenerate src/api/schema.d.ts
-
 # i18n
-npm run i18n:extract     # Extract new keys
-npm run i18n:sync        # Sync all locales
-npm run i18n:status      # Translation coverage
+npm run i18n:extract     # extract new keys
+npm run i18n:sync        # sync all locales
+npm run i18n:types       # generate i18n type definitions
+npm run i18n:status      # translation coverage report
 ```
-
----
-
-## Deployment
-
-**Infrastructure:** AWS S3 (static hosting) + CloudFront CDN
-
-| Resource                | Value                             |
-| ----------------------- | --------------------------------- |
-| S3 bucket               | `healthy-food-ecommerce-frontend` |
-| CloudFront distribution | `EN2M7MB1ED8C7`                   |
-
-**Prerequisites:** AWS CLI configured with S3 write + CloudFront invalidation permissions.
-
-```bash
-# 1. Build
-npm run build
-
-# 2. Upload to S3
-aws s3 sync dist/ s3://healthy-food-ecommerce-frontend --delete
-
-# 3. Invalidate CloudFront cache
-aws cloudfront create-invalidation --distribution-id EN2M7MB1ED8C7 --paths "/*"
-```
-
-> CloudFront invalidation typically propagates within 1–2 minutes.
-
----
-
-## Project Reference
-
-See [`CLAUDE.md`](./CLAUDE.md) for full architecture, folder structure, coding conventions, and feature status.

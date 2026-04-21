@@ -1,56 +1,40 @@
-# Healthy Food E-Commerce API
+# CO3115 HCMUT — Backend API
 
-A modular, role-based e-commerce REST API built with NestJS + MikroORM + MongoDB.
+NestJS REST API with JWT auth and user management. Built for the CO3115 course project at HCMUT.
 
 ## Tech Stack
 
 - **Framework:** NestJS 11, Express
 - **Language:** TypeScript 5.7
 - **ORM:** MikroORM 6.5 (MongoDB driver)
-- **Auth:** Passport.js (local, JWT, Google OAuth)
+- **Auth:** Passport.js — local strategy, JWT, refresh token
 - **Docs:** Swagger (`/api`)
 
 ## Setup
 
 ```bash
 npm install
+cp .env.example .env   # fill in required variables
 ```
 
 ## Running
 
 ```bash
-# development (watch mode)
-npm run start:dev
-
-# production build
-npm run build
-npm run start:prod
-```
-
-## Testing
-
-```bash
-# unit tests
-npm run test
-
-# e2e tests
-npm run test:e2e
-
-# coverage
-npm run test:cov
-```
-
-## Other Commands
-
-```bash
-npm run lint             # fix ESLint issues
-npm run format           # fix formatting
-npm run typecheck        # TypeScript type check
-npm run pre-push         # lint + typecheck + build
-npm run swagger:generate # generate OpenAPI schema
+npm run start:dev      # development (watch mode)
+npm run build && npm run start:prod
 ```
 
 Swagger UI: `http://localhost:3300/api`
+
+## Commands
+
+```bash
+npm run lint           # fix ESLint issues
+npm run format         # fix formatting
+npm run typecheck      # TypeScript type check
+npm run pre-push       # lint + typecheck + build
+npm run swagger:generate  # generate OpenAPI schema file
+```
 
 ## Environment Variables
 
@@ -61,68 +45,37 @@ Swagger UI: `http://localhost:3300/api`
 | `JWT_SECRET`             | Yes      | JWT signing key                  |
 | `REFRESH_JWT_SECRET`     | Yes      | Refresh token signing key        |
 | `ENCRYPTION_KEY`         | Yes      | AES key for user name encryption |
-| `CASSO_SECURE_TOKEN`     | Yes      | Casso webhook signature token    |
 | `PORT`                   | No       | HTTP port (default: `3300`)      |
 | `JWT_EXPIRES_IN`         | No       | JWT expiry (default: `1h`)       |
 | `REFRESH_JWT_EXPIRES_IN` | No       | Refresh token expiry             |
 | `NGROK_AUTHTOKEN`        | No       | ngrok tunnel (dev only)          |
-| `GEMINI_API_KEY`         | Yes      | Gemini API key (chatbot)         |
 
-## API Modules
+## API Endpoints
 
-- `POST /auth/login` — login → JWT + refresh token
-- `POST /auth/refresh` — refresh token
-- `POST /users` — register (public)
-- `GET /categories` — list categories (public)
-- `GET /products` — list products (public)
-- `POST /orders` — create order (authenticated)
-- `GET /carts/me` — get cart (authenticated)
-- `POST /reviews` — create review (authenticated)
-- `POST /webhooks/casso` — payment webhook
-- `POST /chatbot` — AI chatbot (authenticated)
+### Auth — `/auth`
 
-See `http://localhost:3300/api` for full Swagger docs.
+| Method | Path            | Auth | Description                    |
+| ------ | --------------- | ---- | ------------------------------ |
+| POST   | `/auth/login`   | —    | Login → JWT + refresh token    |
+| POST   | `/auth/refresh` | —    | Exchange refresh token for JWT |
 
-## Chatbot
+### Users — `/users`
 
-The chatbot is powered by Gemini AI and acts as a shop assistant for HealthyFood.
+| Method | Path                  | Auth  | Description              |
+| ------ | --------------------- | ----- | ------------------------ |
+| POST   | `/users`              | —     | Register                 |
+| GET    | `/users`              | Admin | List all users           |
+| GET    | `/users/me`           | JWT   | Current user profile     |
+| GET    | `/users/:id`          | JWT   | Get user by ID           |
+| GET    | `/users/email/:email` | JWT   | Get user by email        |
+| PATCH  | `/users/:id`          | JWT   | Update name / password   |
+| PATCH  | `/users/:id/status`   | Admin | Activate / deactivate    |
+| DELETE | `/users/:id`          | Admin | Soft-delete user         |
 
-**Endpoint:** `POST /chatbot`  
-**Auth:** Bearer JWT required
+## Testing
 
-**Request body:**
-
-```json
-{ "message": "câu hỏi hoặc yêu cầu của bạn" }
+```bash
+npm run test           # unit tests
+npm run test:e2e       # e2e tests
+npm run test:cov       # coverage report
 ```
-
-**Response:**
-
-```json
-{ "reply": "câu trả lời từ AI" }
-```
-
-**Capabilities:**
-
-- Answer questions about products, prices, stock, categories
-- Recommend combos based on budget or nutritional needs
-- Show active vouchers and how to apply them
-- Explain delivery options and shipping fees
-- Add products to cart on behalf of the user (e.g. _"thêm Quinoa Power Bowl vào giỏ hàng"_)
-
-**Chat history:** Conversations are persisted per user in MongoDB (last 10 messages). Older messages are automatically trimmed.
-
-**Environment variable required:**
-
-| Variable         | Required | Purpose        |
-| ---------------- | -------- | -------------- |
-| `GEMINI_API_KEY` | Yes      | Gemini API key |
-
-## Payment Flow
-
-1. User creates order → status `PENDING`
-2. User pays via bank transfer with memo: `THANHTOAN <orderId>`
-3. Casso webhook hits `POST /webhooks/casso`
-4. If amount matches and status is `PENDING` → status becomes `CONFIRMED`
-
-**Order status flow:** `PENDING` → `CONFIRMED` → `SHIPPED` → `DELIVERED` / `CANCELLED`

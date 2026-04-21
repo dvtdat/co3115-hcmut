@@ -1,0 +1,81 @@
+name: Check Pull Request
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+
+concurrency:
+  group: pr-check-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: true
+
+jobs:
+  set-env:
+    runs-on: ubuntu-22.04
+    outputs:
+      environment-name: ${{ steps.set-env.outputs.environment-name }}
+    steps:
+      - id: set-env
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          if [[ "$BASE_REF" == "develop" ]]; then
+            echo "environment-name=dev" >> $GITHUB_OUTPUT
+          elif [[ "$BASE_REF" == "staging" ]]; then
+            echo "environment-name=staging" >> $GITHUB_OUTPUT
+          elif [[ "$BASE_REF" == "main" ]]; then
+            echo "environment-name=prod" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown target branch: $BASE_REF"
+            exit 1
+          fi
+
+  filter:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'src/**'
+              - 'public/**'
+              - 'index.html'
+              - 'package.json'
+              - 'vite.config.ts'
+              - 'tsconfig*.json'
+              - 'tailwind.config.*'
+            infra:
+              - 'infra/**'
+              - '.github/**'
+
+  build:
+    name: Lint and Build
+    needs: [filter, set-env]
+    if: needs.filter.outputs.frontend == 'true'
+    uses: ./.github/workflows/workflow-build.yml
+    with:
+      environment-name: ${{ needs.set-env.outputs.environment-name }}
+      upload: false
+    secrets: inherit
+
+  infra-validate:
+    name: Terraform Plan
+    needs: [filter, set-env]
+    if: needs.filter.outputs.infra == 'true'
+    uses: ./.github/workflows/workflow-infra.yml
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      environment-name: ${{ needs.set-env.outputs.environment-name }}
+      run_apply: false
+    secrets: inherit

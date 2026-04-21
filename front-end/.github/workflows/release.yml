@@ -1,0 +1,72 @@
+name: Release to Environment
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy (develop, staging, main)"
+        required: true
+        default: develop
+        type: choice
+        options:
+          - develop
+          - staging
+          - main
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  set-env:
+    runs-on: ubuntu-22.04
+    outputs:
+      environment-name: ${{ steps.set-env.outputs.environment-name }}
+    steps:
+      - id: set-env
+        run: |
+          REF_NAME="${{ github.event.inputs.branch || github.ref_name }}"
+          if [[ "$REF_NAME" == "develop" ]]; then
+            echo "environment-name=dev" >> $GITHUB_OUTPUT
+          elif [[ "$REF_NAME" == "staging" ]]; then
+            echo "environment-name=staging" >> $GITHUB_OUTPUT
+          elif [[ "$REF_NAME" == "main" ]]; then
+            echo "environment-name=prod" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown branch: $REF_NAME"
+            exit 1
+          fi
+
+  terraform:
+    name: Deploy Infrastructure
+    needs: set-env
+    uses: ./.github/workflows/workflow-infra.yml
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      run_apply: true
+      environment-name: ${{ needs.set-env.outputs.environment-name }}
+    secrets: inherit
+
+  build:
+    name: Build
+    needs: [terraform, set-env]
+    uses: ./.github/workflows/workflow-build.yml
+    with:
+      upload: true
+      environment-name: ${{ needs.set-env.outputs.environment-name }}
+    secrets: inherit
+
+  release:
+    name: Release Application
+    needs: [build, set-env]
+    uses: ./.github/workflows/workflow-release.yml
+    with:
+      environment-name: ${{ needs.set-env.outputs.environment-name }}
+    secrets: inherit

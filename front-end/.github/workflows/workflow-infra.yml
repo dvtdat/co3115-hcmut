@@ -1,0 +1,86 @@
+name: Terraform Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment-name:
+        description: "Target environment (dev, staging, prod)"
+        required: true
+        type: string
+      run_apply:
+        description: "Run terraform apply (true = release, false = PR plan only)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  terraform:
+    name: Terraform
+    environment:
+      name: ${{ inputs.environment-name }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: infra/live
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.12"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=terraform.tfstate" \
+            -backend-config="region=eu-west-1" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true" \
+            -reconfigure
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          # basic_auth_secret_arn is only required for dev and staging (not prod)
+          EXTRA_VARS=""
+          if [[ "${{ inputs.environment-name }}" != "prod" ]]; then
+            EXTRA_VARS="-var=basic_auth_secret_arn=${{ secrets.BASIC_AUTH_SECRET_ARN }}"
+          fi
+          terraform plan -var-file=${{ inputs.environment-name }}.tfvars $EXTRA_VARS -out=tfplan
+
+          echo "<details>" > plan.txt
+          echo "<summary>Terraform Plan — ${{ inputs.environment-name }}</summary>" >> plan.txt
+          echo "" >> plan.txt
+          echo '```' >> plan.txt
+          terraform show -no-color tfplan >> plan.txt
+          echo '```' >> plan.txt
+          echo "</details>" >> plan.txt
+
+      - name: Comment PR with plan
+        if: ${{ inputs.run_apply == false }}
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: infra/live/plan.txt
+          comment-tag: terraform-plan-${{ inputs.environment-name }}
+
+      - name: Terraform Apply
+        if: ${{ inputs.run_apply == true }}
+        run: |
+          test -f tfplan || { echo "No plan file found — cannot apply"; exit 1; }
+          terraform apply tfplan

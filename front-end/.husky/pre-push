@@ -1,0 +1,8 @@
+npm run lint -- --fix && npm run format
+
+if ! git diff --quiet; then
+  echo ""
+  echo "Auto-fixed lint/format issues were found."
+  echo "Please stage and commit the changes, then push again."
+  exit 1
+fi

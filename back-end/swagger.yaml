@@ -1,0 +1,2123 @@
+openapi: 3.0.0
+paths:
+  /users:
+    post:
+      operationId: UserController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      summary: Register a new user
+      tags: &ref_0
+        - users
+    get:
+      operationId: UserController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security:
+        - bearer: []
+      summary: List all users (admin)
+      tags: *ref_0
+  /users/me:
+    get:
+      operationId: UserController_getMe
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+      summary: Get current user profile
+      tags: *ref_0
+  /users/{id}:
+    get:
+      operationId: UserController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+      summary: Get user by ID
+      tags: *ref_0
+    patch:
+      operationId: UserController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+      summary: Update user profile
+      tags: *ref_0
+    delete:
+      operationId: UserController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+      summary: Soft delete a user
+      tags: *ref_0
+  /users/{id}/orders:
+    get:
+      operationId: UserController_findUserOrders
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security:
+        - bearer: []
+      summary: List a user's orders (admin)
+      tags: *ref_0
+  /users/email/{email}:
+    get:
+      operationId: UserController_findByEmail
+      parameters:
+        - name: email
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      summary: Get user by email
+      tags: *ref_0
+  /users/{id}/status:
+    patch:
+      operationId: UserController_updateStatus
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserStatusDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+      summary: Activate or deactivate a user (admin)
+      tags: *ref_0
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    example: 507f1f77bcf86cd799439011
+                  role:
+                    type: string
+                    example: user
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+        '401':
+          description: Invalid credentials
+      summary: Login with email and password
+      tags: &ref_1
+        - auth
+  /auth/refresh:
+    post:
+      operationId: AuthController_refreshToken
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                    example: 507f1f77bcf86cd799439011
+                  token:
+                    type: string
+        '401':
+          description: Invalid or expired refresh token
+      summary: Refresh access token using refresh token
+      tags: *ref_1
+  /categories:
+    post:
+      operationId: CategoryController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+      security:
+        - bearer: []
+      summary: Create a category (admin)
+      tags: &ref_2
+        - categories
+    get:
+      operationId: CategoryController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      summary: List all categories
+      tags: *ref_2
+  /categories/slug/{slug}:
+    get:
+      operationId: CategoryController_findBySlug
+      parameters:
+        - name: slug
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+      summary: Get category by slug
+      tags: *ref_2
+  /categories/{id}:
+    get:
+      operationId: CategoryController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+      summary: Get category by ID
+      tags: *ref_2
+    patch:
+      operationId: CategoryController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+      security:
+        - bearer: []
+      summary: Update a category (admin)
+      tags: *ref_2
+    delete:
+      operationId: CategoryController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+      security:
+        - bearer: []
+      summary: Delete a category (admin)
+      tags: *ref_2
+  /products:
+    post:
+      operationId: ProductController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      security:
+        - bearer: []
+      summary: Create a product (admin)
+      tags: &ref_3
+        - products
+    get:
+      operationId: ProductController_findAll
+      parameters:
+        - name: categoryId
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: sort
+          required: false
+          in: query
+          schema:
+            enum:
+              - newest
+              - price_asc
+              - price_desc
+              - top_rated
+              - most_viewed
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      summary: List all products with optional category filter and sorting
+      tags: *ref_3
+  /products/slug/{slug}:
+    get:
+      operationId: ProductController_findBySlug
+      parameters:
+        - name: slug
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      summary: Get product by slug
+      tags: *ref_3
+  /products/{id}:
+    get:
+      operationId: ProductController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      summary: Get product by ID
+      tags: *ref_3
+    patch:
+      operationId: ProductController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      security:
+        - bearer: []
+      summary: Update a product (admin)
+      tags: *ref_3
+    delete:
+      operationId: ProductController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+      security:
+        - bearer: []
+      summary: Delete a product (admin)
+      tags: *ref_3
+  /orders/delivery-options:
+    get:
+      operationId: OrderController_getDeliveryOptions
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    label:
+                      type: string
+                    description:
+                      type: string
+                    estimatedDays:
+                      type: string
+                    fee:
+                      type: number
+      security: &ref_4
+        - bearer: []
+      summary: List available delivery options with fees
+      tags: &ref_5
+        - orders
+  /orders:
+    post:
+      operationId: OrderController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      security: *ref_4
+      summary: Create order from current cart
+      tags: *ref_5
+    get:
+      operationId: OrderController_findAll
+      parameters:
+        - name: status
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: userId
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security: *ref_4
+      summary: List all orders (admin)
+      tags: *ref_5
+  /orders/me:
+    get:
+      operationId: OrderController_findMyOrders
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security: *ref_4
+      summary: List current user's orders
+      tags: *ref_5
+  /orders/{id}/payment-qr:
+    get:
+      operationId: OrderController_getPaymentQr
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  bankId:
+                    type: string
+                    example: '970448'
+                  accountNumber:
+                    type: string
+                    example: CASSDVTDAT
+                  accountName:
+                    type: string
+                    example: DOAN VIET TIEN DAT
+                  amount:
+                    type: number
+                    example: 150000
+                  memo:
+                    type: string
+                    example: THANHTOAN 507f1f77bcf86cd799439011
+                  qrUrl:
+                    type: string
+                    example: https://img.vietqr.io/image/970448-CASSDVTDAT-compact2.png?...
+      security: *ref_4
+      summary: Get VietQR payment details for a pending order
+      tags: *ref_5
+  /orders/{id}:
+    get:
+      operationId: OrderController_findOne
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      security: *ref_4
+      summary: Get order by ID
+      tags: *ref_5
+    delete:
+      operationId: OrderController_cancel
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      security: *ref_4
+      summary: Cancel an order
+      tags: *ref_5
+  /orders/{id}/status:
+    patch:
+      operationId: OrderController_updateStatus
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderStatusDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      security: *ref_4
+      summary: Update order status (admin)
+      tags: *ref_5
+  /carts/me:
+    get:
+      operationId: CartController_getCart
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+      security: &ref_6
+        - bearer: []
+      summary: Get or create the current user cart
+      tags: &ref_7
+        - carts
+  /carts/items:
+    post:
+      operationId: CartController_addItem
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItemDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+      security: *ref_6
+      summary: Add item to cart (increments if already exists)
+      tags: *ref_7
+  /carts/items/{productId}:
+    patch:
+      operationId: CartController_updateItem
+      parameters:
+        - name: productId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+      security: *ref_6
+      summary: Update cart item quantity
+      tags: *ref_7
+    delete:
+      operationId: CartController_removeItem
+      parameters:
+        - name: productId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+      security: *ref_6
+      summary: Remove a product from cart
+      tags: *ref_7
+  /carts:
+    delete:
+      operationId: CartController_clearCart
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+      security: *ref_6
+      summary: Clear all items from cart
+      tags: *ref_7
+  /reviews:
+    post:
+      operationId: ReviewController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+      security:
+        - bearer: []
+      summary: Create a review (one per user per product)
+      tags: &ref_8
+        - reviews
+    get:
+      operationId: ReviewController_findByProduct
+      parameters:
+        - name: productId
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      summary: List reviews for a product
+      tags: *ref_8
+  /reviews/{id}:
+    patch:
+      operationId: ReviewController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+      security:
+        - bearer: []
+      summary: Update your review
+      tags: *ref_8
+    delete:
+      operationId: ReviewController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+      security:
+        - bearer: []
+      summary: Delete your review
+      tags: *ref_8
+  /webhooks/casso:
+    post:
+      operationId: WebhookController_handleCasso
+      parameters:
+        - name: secure-token
+          in: header
+          description: Casso legacy secure token header
+          required: false
+          schema:
+            type: string
+        - name: x-casso-signature
+          in: header
+          description: Casso V2 secure token header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CassoWebhookDto'
+      responses:
+        '200':
+          description: ''
+      summary: Casso bank transfer webhook
+      tags:
+        - webhooks
+  /uploads/presign:
+    post:
+      description: Returns a short-lived PUT URL (5 min). The client PUTs the file directly to S3 using that URL, then stores the returned `fileUrl` on the resource.
+      operationId: UploadController_generatePresignedUrl
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratePresignDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  uploadUrl:
+                    type: string
+                    example: https://bucket.s3.ap-southeast-1.amazonaws.com/products/uuid.jpg?X-Amz-Signature=...
+                  fileUrl:
+                    type: string
+                    example: https://bucket.s3.ap-southeast-1.amazonaws.com/products/uuid.jpg
+      security:
+        - bearer: []
+      summary: Generate a presigned S3 URL for direct browser upload
+      tags:
+        - uploads
+  /admin/stats:
+    get:
+      description: |-
+        Returns a single response containing:
+        - **orders**: byStatus counts, total revenue, avg order value, today/week/month counts, revenue-by-day chart data (last 30 days), last 10 orders
+        - **products**: total, out-of-stock count, low-stock list, top-5 by units sold, top-5 by revenue, top-5 by views
+        - **users**: total, new this week, new this month
+        - **reviews**: total count, global average rating
+        - **categories**: product count per category, revenue per category
+      operationId: AdminController_getStats
+      parameters: []
+      responses:
+        '200':
+          description: Aggregated dashboard stats
+      security:
+        - bearer: []
+      summary: Dashboard statistics (admin)
+      tags:
+        - admin
+  /vouchers:
+    post:
+      operationId: VoucherController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVoucherDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voucher'
+      security:
+        - bearer: []
+      summary: Create voucher (admin)
+      tags: &ref_9
+        - vouchers
+    get:
+      operationId: VoucherController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Voucher'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security:
+        - bearer: []
+      summary: List all vouchers (admin)
+      tags: *ref_9
+  /vouchers/available:
+    get:
+      operationId: VoucherController_findAvailable
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Voucher'
+                  total:
+                    type: number
+                  pageSize:
+                    type: number
+                  pageNumber:
+                    type: number
+                  totalPages:
+                    type: number
+      security:
+        - bearer: []
+      summary: List available vouchers (authenticated)
+      tags: *ref_9
+  /vouchers/validate/{code}:
+    get:
+      operationId: VoucherController_validateVoucher
+      parameters:
+        - name: code
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: subtotal
+          required: true
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  code:
+                    type: string
+                  type:
+                    type: string
+                  value:
+                    type: number
+                  discountAmount:
+                    type: number
+                  minOrderAmount:
+                    type: number
+                    nullable: true
+                  maxDiscount:
+                    type: number
+                    nullable: true
+                  validTo:
+                    type: string
+                    format: date-time
+      security:
+        - bearer: []
+      summary: Validate voucher and preview discount (authenticated)
+      tags: *ref_9
+  /vouchers/{id}:
+    patch:
+      operationId: VoucherController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVoucherDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voucher'
+      security:
+        - bearer: []
+      summary: Update voucher (admin)
+      tags: *ref_9
+    delete:
+      operationId: VoucherController_remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+      security:
+        - bearer: []
+      summary: Soft delete voucher (admin)
+      tags: *ref_9
+  /chatbot:
+    post:
+      description: Send a message and get AI-powered responses about products, prices, vouchers, delivery, etc. History is stored per user (last 10 messages).
+      operationId: ChatbotController_chat
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  reply:
+                    type: string
+                    example: Hiện shop có 12 sản phẩm...
+      security:
+        - bearer: []
+      summary: Chat with AI assistant about the shop
+      tags:
+        - chatbot
+info:
+  title: Healthy Food E-Commerce API
+  description: Healthy Food E-Commerce API description
+  version: '1.0'
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    CreateUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        password:
+          type: string
+          example: password123
+          minLength: 6
+      required:
+        - email
+        - firstName
+        - lastName
+        - password
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        role:
+          type: string
+          enum:
+            - guest
+            - user
+            - admin
+          example: user
+        isActive:
+          type: object
+          example: true
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - email
+        - firstName
+        - lastName
+        - role
+        - isActive
+    UpdateUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        password:
+          type: string
+          example: newpassword123
+          minLength: 6
+        role:
+          type: string
+          enum:
+            - guest
+            - user
+            - admin
+    UpdateUserStatusDto:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+          example: true
+      required:
+        - isActive
+    CreateCategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Vegetables
+        slug:
+          type: string
+          example: vegetables
+        description:
+          type: string
+          example: Fresh organic vegetables
+        imageUrl:
+          type: string
+          example: https://example.com/image.jpg
+      required:
+        - name
+        - slug
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        name:
+          type: string
+          example: Vegetables
+        slug:
+          type: string
+          example: vegetables
+        description:
+          type: string
+          example: Fresh organic vegetables
+        imageUrl:
+          type: string
+          example: https://example.com/image.jpg
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - name
+        - slug
+    UpdateCategoryDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Vegetables
+        slug:
+          type: string
+          example: vegetables
+        description:
+          type: string
+          example: Fresh organic vegetables
+        imageUrl:
+          type: string
+          example: https://example.com/image.jpg
+    CreateProductDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Organic Broccoli
+        slug:
+          type: string
+          example: organic-broccoli
+        description:
+          type: string
+          example: Fresh organic broccoli from local farms
+        price:
+          type: number
+          example: 29000
+          minimum: 0
+        stock:
+          type: number
+          example: 100
+          minimum: 0
+        imageUrl:
+          type: string
+          example: https://example.com/broccoli.jpg
+        keyCharacteristics:
+          example:
+            - High protein
+            - Omega-3 rich
+            - Low GI
+          type: array
+          items:
+            type: string
+        weight:
+          type: number
+          example: 330
+        weightUnit:
+          type: string
+          example: g
+        calories:
+          type: number
+          example: 280
+        healthScore:
+          type: number
+          example: 8.8
+        shelfLife:
+          type: string
+          example: 1 day (refrigerated)
+        categoryId:
+          type: string
+          example: 507f1f77bcf86cd799439011
+      required:
+        - name
+        - slug
+        - price
+        - stock
+        - categoryId
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        name:
+          type: string
+          example: Organic Broccoli
+        slug:
+          type: string
+          example: organic-broccoli
+        description:
+          type: string
+          example: Fresh organic broccoli from local farms
+        price:
+          type: number
+          example: 29000
+        stock:
+          type: number
+          example: 100
+        imageUrl:
+          type: string
+          example: https://example.com/broccoli.jpg
+        keyCharacteristics:
+          example:
+            - High protein
+            - Omega-3 rich
+            - Low GI
+          type: array
+          items:
+            type: string
+        weight:
+          type: number
+          example: 330
+        weightUnit:
+          type: string
+          example: g
+        calories:
+          type: number
+          example: 280
+        healthScore:
+          type: number
+          example: 8.8
+        shelfLife:
+          type: string
+          example: 1 day (refrigerated)
+        viewCount:
+          type: object
+          example: 42
+        category:
+          $ref: '#/components/schemas/Category'
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - name
+        - slug
+        - price
+        - stock
+        - viewCount
+        - category
+    UpdateProductDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Organic Broccoli
+        slug:
+          type: string
+          example: organic-broccoli
+        description:
+          type: string
+          example: Fresh organic broccoli from local farms
+        price:
+          type: number
+          example: 29000
+          minimum: 0
+        stock:
+          type: number
+          example: 100
+          minimum: 0
+        imageUrl:
+          type: string
+          example: https://example.com/broccoli.jpg
+        keyCharacteristics:
+          example:
+            - High protein
+            - Omega-3 rich
+            - Low GI
+          type: array
+          items:
+            type: string
+        weight:
+          type: number
+          example: 330
+        weightUnit:
+          type: string
+          example: g
+        calories:
+          type: number
+          example: 280
+        healthScore:
+          type: number
+          example: 8.8
+        shelfLife:
+          type: string
+          example: 1 day (refrigerated)
+        categoryId:
+          type: string
+          example: 507f1f77bcf86cd799439011
+    CreateOrderDto:
+      type: object
+      properties:
+        shippingAddress:
+          type: string
+          example: 123 Nguyen Hue, District 1, HCMC
+        deliveryOption:
+          type: string
+          enum:
+            - standard
+            - fast
+            - urgent
+          example: standard
+        voucherCode:
+          type: string
+          example: SUMMER10
+        notes:
+          type: string
+          example: Please call before delivery
+      required:
+        - shippingAddress
+        - deliveryOption
+    OrderItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        product:
+          $ref: '#/components/schemas/Product'
+        quantity:
+          type: number
+          example: 2
+        unitPrice:
+          type: number
+          example: 29000
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - product
+        - quantity
+        - unitPrice
+    Payment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        cassoTransactionId:
+          type: number
+          example: 12345
+        amount:
+          type: number
+          example: 150000
+        bankName:
+          type: string
+          example: Vietcombank
+        bankAbbreviation:
+          type: string
+          example: VCB
+        accountNumber:
+          type: string
+          example: '0123456789'
+        description:
+          type: string
+          example: THANHTOAN 507f1f77bcf86cd799439011
+        confirmedAt:
+          format: date-time
+          type: string
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cassoTransactionId
+        - amount
+        - description
+        - confirmedAt
+    StatusHistoryEntry:
+      type: object
+      properties:
+        status:
+          type: string
+          example: pending
+        changedAt:
+          format: date-time
+          type: string
+        note:
+          type: string
+      required:
+        - status
+        - changedAt
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        status:
+          type: string
+          enum:
+            - pending
+            - confirmed
+            - shipped
+            - delivered
+            - cancelled
+          example: pending
+        statusHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusHistoryEntry'
+        deliveryOption:
+          type: string
+          enum:
+            - standard
+            - fast
+            - urgent
+          example: standard
+        deliveryFee:
+          type: number
+          example: 20000
+        subtotal:
+          type: number
+          example: 130000
+        discountAmount:
+          type: object
+          example: 0
+        voucherCode:
+          type: string
+          example: SUMMER10
+        totalAmount:
+          type: number
+          example: 150000
+        shippingAddress:
+          type: string
+          example: 123 Nguyen Hue, District 1, HCMC
+        notes:
+          type: string
+          example: Please call before delivery
+        trackingNumber:
+          type: string
+          example: VN123456789
+        courierName:
+          type: string
+          example: Giao Hang Nhanh
+        estimatedDeliveryDate:
+          format: date-time
+          type: string
+        actualDeliveryDate:
+          format: date-time
+          type: string
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - user
+        - status
+        - statusHistory
+        - deliveryOption
+        - deliveryFee
+        - subtotal
+        - discountAmount
+        - totalAmount
+        - shippingAddress
+    UpdateOrderStatusDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+            - confirmed
+            - shipped
+            - delivered
+            - cancelled
+          example: shipped
+        trackingNumber:
+          type: string
+          example: VN123456789
+        courierName:
+          type: string
+          example: Giao Hang Nhanh
+        estimatedDeliveryDate:
+          type: string
+          example: '2026-04-05T00:00:00.000Z'
+        note:
+          type: string
+          example: Order confirmed and ready to ship
+      required:
+        - status
+    CartItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        product:
+          $ref: '#/components/schemas/Product'
+        quantity:
+          type: number
+          example: 2
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - product
+        - quantity
+    Cart:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - user
+    AddCartItemDto:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        quantity:
+          type: number
+          example: 2
+          minimum: 1
+      required:
+        - productId
+        - quantity
+    UpdateCartItemDto:
+      type: object
+      properties:
+        quantity:
+          type: number
+          example: 3
+          minimum: 1
+      required:
+        - quantity
+    CreateReviewDto:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        rating:
+          type: number
+          example: 5
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          example: Great product, highly recommended!
+      required:
+        - productId
+        - rating
+    Review:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        product:
+          $ref: '#/components/schemas/Product'
+        rating:
+          type: number
+          example: 5
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          example: Great product!
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - user
+        - product
+        - rating
+    UpdateReviewDto:
+      type: object
+      properties:
+        rating:
+          type: number
+          example: 4
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          example: Updated review comment
+    CassoTransactionDto:
+      type: object
+      properties:
+        id:
+          type: number
+        reference:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        runningBalance:
+          type: number
+        transactionDateTime:
+          type: string
+        accountNumber:
+          type: string
+        bankName:
+          type: string
+        bankAbbreviation:
+          type: string
+        virtualAccountNumber:
+          type: string
+        virtualAccountName:
+          type: string
+        counterAccountName:
+          type: string
+        counterAccountNumber:
+          type: string
+        counterAccountBankId:
+          type: string
+        counterAccountBankName:
+          type: string
+      required:
+        - id
+        - description
+        - amount
+    CassoWebhookDto:
+      type: object
+      properties:
+        error:
+          type: number
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CassoTransactionDto'
+      required:
+        - error
+        - data
+    GeneratePresignDto:
+      type: object
+      properties:
+        folder:
+          type: string
+          enum:
+            - products
+            - categories
+            - users
+            - reviews
+          example: products
+        contentType:
+          type: string
+          example: image/jpeg
+          enum:
+            - image/jpeg
+            - image/png
+            - image/webp
+      required:
+        - folder
+        - contentType
+    CreateVoucherDto:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SUMMER10
+        type:
+          type: string
+          enum: &ref_10
+            - percent
+            - fixed
+          example: percent
+        value:
+          type: number
+          example: 10
+          description: Percent value or fixed VND amount
+        minOrderAmount:
+          type: number
+          example: 100000
+        maxDiscount:
+          type: number
+          example: 50000
+          description: Max discount cap (percent type only)
+        usageLimit:
+          type: number
+          example: 100
+        perUserLimit:
+          type: number
+          example: 1
+          description: Max uses per user
+        validFrom:
+          type: string
+          example: '2026-04-15T00:00:00.000Z'
+        validTo:
+          type: string
+          example: '2026-12-31T23:59:59.000Z'
+        isActive:
+          type: boolean
+          example: true
+      required:
+        - code
+        - type
+        - value
+        - validFrom
+        - validTo
+    Voucher:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        createdAt:
+          type: object
+        updatedAt:
+          type: object
+        deletedAt:
+          format: date-time
+          type: string
+        code:
+          type: string
+          example: SUMMER10
+        type:
+          type: string
+          enum:
+            - percent
+            - fixed
+          example: percent
+        value:
+          type: number
+          example: 10
+          description: Percent (10 = 10%) or fixed amount (VND)
+        minOrderAmount:
+          type: number
+          example: 100000
+          description: Min order subtotal to apply voucher
+        maxDiscount:
+          type: number
+          example: 50000
+          description: Max discount cap (for percent type)
+        usageLimit:
+          type: number
+          example: 100
+          description: Total usage limit across all users
+        usedCount:
+          type: object
+          example: 0
+        perUserLimit:
+          type: number
+          example: 1
+          description: Max times a single user can use this voucher
+        validFrom:
+          format: date-time
+          type: string
+        validTo:
+          format: date-time
+          type: string
+        isActive:
+          type: object
+          example: true
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - code
+        - type
+        - value
+        - usedCount
+        - validFrom
+        - validTo
+        - isActive
+    UpdateVoucherDto:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SUMMER10
+        type:
+          type: string
+          enum: *ref_10
+          example: percent
+        value:
+          type: number
+          example: 10
+          description: Percent value or fixed VND amount
+        minOrderAmount:
+          type: number
+          example: 100000
+        maxDiscount:
+          type: number
+          example: 50000
+          description: Max discount cap (percent type only)
+        usageLimit:
+          type: number
+          example: 100
+        perUserLimit:
+          type: number
+          example: 1
+          description: Max uses per user
+        validFrom:
+          type: string
+          example: '2026-04-15T00:00:00.000Z'
+        validTo:
+          type: string
+          example: '2026-12-31T23:59:59.000Z'
+        isActive:
+          type: boolean
+          example: true
+    ChatMessageDto:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Cho tôi xem các sản phẩm đang còn hàng
+      required:
+        - message

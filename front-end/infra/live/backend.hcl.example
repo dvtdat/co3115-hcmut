@@ -1,0 +1,11 @@
+# Copy this file to backend-dev.hcl / backend-staging.hcl / backend-prod.hcl
+# and fill in your AWS account ID. These files are gitignored.
+#
+# Usage:
+#   terraform init -backend-config=backend-dev.hcl -reconfigure
+
+bucket       = "tolerant-terraform-state-dev-<YOUR_AWS_ACCOUNT_ID>"
+key          = "terraform.tfstate"
+region       = "eu-west-1"
+use_lockfile = true
+encrypt      = true

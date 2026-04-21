@@ -1,0 +1,23 @@
+{
+  "brand": "HealthyFood",
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About"
+  },
+  "search": {
+    "placeholder": "Search healthy foods…"
+  },
+  "cart": {
+    "label": "Cart"
+  },
+  "user": {
+    "myOrders": "My Orders",
+    "profile": "Profile",
+    "logout": "Log out",
+    "signIn": "Sign In"
+  },
+  "footer": {
+    "copyright": "© 2026 HealthyFood. All rights reserved."
+  }
+}

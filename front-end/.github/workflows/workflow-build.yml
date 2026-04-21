@@ -1,0 +1,53 @@
+name: Build Application
+
+on:
+  workflow_call:
+    inputs:
+      environment-name:
+        description: "Target environment (dev, staging, prod)"
+        required: true
+        type: string
+      upload:
+        description: "Upload build artifact for later deployment"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Lint and Build
+    environment:
+      name: ${{ inputs.environment-name }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: |
+          ENV="${{ inputs.environment-name }}"
+          # prod environment maps to the build:production script
+          if [[ "$ENV" == "prod" ]]; then
+            npm run build:production
+          else
+            npm run build:$ENV
+          fi
+
+      - name: Upload build artifact
+        if: ${{ inputs.upload }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ inputs.environment-name }}
+          path: dist/
+          retention-days: 1

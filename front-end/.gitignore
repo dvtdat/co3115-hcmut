@@ -1,0 +1,50 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Git worktrees
+.worktrees/
+
+# AI Agent tools
+CLAUDE.md
+
+# Environment files
+.env.development
+.env.staging
+.env.production
+
+# Tanstack router gen files
+.routeTree.gen.ts
+
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.auto.tfvars
+# Backend config files contain the AWS account ID — use backend.hcl.example as template
+infra/live/backend-*.hcl
+# Terraform plan binary (generated locally and in CI, never committed)
+tfplan

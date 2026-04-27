@@ -4,47 +4,38 @@ import { BaseEntity } from '../base/base.entity';
 
 export enum UserRole {
   GUEST = 'guest',
-  USER = 'user',
+  CUSTOMER = 'customer',
   ADMIN = 'admin',
 }
 
+/**
+ * Base User entity — center of the specialization hierarchy.
+ *
+ * ERD attributes: userID (mapped to _id), email, passwordHash.
+ * The disjoint constraint (Customer | Admin) is enforced via the
+ * `role` discriminator column at the application level.
+ */
 @Entity()
 export class User extends BaseEntity {
   @ApiProperty({ example: 'user@example.com' })
   @Property({ unique: true })
   email!: string;
 
-  @ApiProperty({ example: 'John' })
-  @Property()
-  firstName!: string;
-
-  @ApiProperty({ example: 'Doe' })
-  @Property()
-  lastName!: string;
-
   @ApiHideProperty()
   @Property()
-  password: string;
+  password!: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.USER })
+  @ApiProperty({ enum: UserRole, example: UserRole.CUSTOMER })
   @Enum(() => UserRole)
-  role: UserRole;
+  role!: UserRole;
 
   @ApiProperty({ example: true })
   @Property({ default: true })
   isActive = true;
 
-  constructor(
-    email: string,
-    firstName: string,
-    lastName: string,
-    password: string,
-    role: UserRole = UserRole.USER,
-  ) {
+  constructor(email: string, password: string, role: UserRole = UserRole.CUSTOMER) {
     super();
     this.email = email;
-    this.firstName = firstName;
-    this.lastName = lastName;
     this.password = password;
     this.role = role;
   }

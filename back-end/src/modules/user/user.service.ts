@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto, UpdateUserStatusDto } from './dto';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
-import { User, UserRole } from 'src/entities';
+import { User, UserRole, Customer } from 'src/entities';
+import { ShoppingCart } from 'src/entities/shopping-cart/shopping-cart.entity';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { utils } from 'src/common/utils';
 import { CurrentUserData } from 'src/common/decorators/current-user.decorator';
@@ -15,6 +16,10 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: EntityRepository<Customer>,
+    @InjectRepository(ShoppingCart)
+    private readonly shoppingCartRepository: EntityRepository<ShoppingCart>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -26,15 +31,25 @@ export class UserService {
       throw new Error('User with this email already exists');
     }
 
+    const em = this.userRepository.getEntityManager();
+
     const hashedPassword = await utils.hashPassword(createUserDto.password);
-    const user = new User(
-      createUserDto.email,
-      createUserDto.firstName,
-      createUserDto.lastName,
-      hashedPassword,
-    );
-    await this.userRepository.getEntityManager().persistAndFlush(user);
-    return user;
+    const user = new User(createUserDto.email, hashedPassword, UserRole.CUSTOMER);
+    em.persist(user);
+
+    // Create the Customer sub-entity
+    const customer = new Customer(user, createUserDto.fullName);
+    customer.phone = createUserDto.phone;
+    customer.deliveryAccess = createUserDto.deliveryAccess;
+    em.persist(customer);
+
+    // Create a ShoppingCart for the customer (1:1)
+    const cart = new ShoppingCart(customer);
+    em.persist(cart);
+
+    await em.flush();
+
+    return { user, customer };
   }
 
   async findAll(pageSize = 10, pageNumber = 1) {
@@ -106,14 +121,30 @@ export class UserService {
       throw new ForbiddenException('Only admins can change user roles');
     }
 
+    // Update User-level fields
     if (updateUserDto.password) {
-      updateUserDto.password = await utils.hashPassword(updateUserDto.password);
+      user.password = await utils.hashPassword(updateUserDto.password);
+    }
+    if (updateUserDto.email) {
+      user.email = updateUserDto.email;
+    }
+    if (updateUserDto.role) {
+      user.role = updateUserDto.role;
+    }
+    user.updatedAt = new Date();
+
+    // Update Customer-level fields if applicable
+    if (user.role === UserRole.CUSTOMER) {
+      const customer = await this.customerRepository.findOne({ user });
+      if (customer) {
+        if (updateUserDto.fullName) customer.fullName = updateUserDto.fullName;
+        if (updateUserDto.phone !== undefined) customer.phone = updateUserDto.phone;
+        if (updateUserDto.deliveryAccess !== undefined) customer.deliveryAccess = updateUserDto.deliveryAccess;
+        customer.updatedAt = new Date();
+      }
     }
 
-    user.updatedAt = new Date();
-    Object.assign(user, updateUserDto);
-
-    await this.userRepository.getEntityManager().persistAndFlush(user);
+    await this.userRepository.getEntityManager().flush();
     return user;
   }
 

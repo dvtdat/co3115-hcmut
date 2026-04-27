@@ -7,7 +7,7 @@ type StringIndexEntity = Record<string, unknown>;
 @Injectable()
 export class EncryptionSubscriber implements EventSubscriber {
   private readonly fieldsToEncrypt = new Map<string, string[]>([
-    ['User', ['firstName', 'lastName']],
+    ['Customer', ['fullName']],
   ]);
 
   private encryptedEntities = new WeakSet<object>();

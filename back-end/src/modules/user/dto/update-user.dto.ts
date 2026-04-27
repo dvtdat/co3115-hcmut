@@ -14,16 +14,6 @@ export class UpdateUserDto {
   @IsOptional()
   email?: string;
 
-  @ApiPropertyOptional({ example: 'John' })
-  @IsString()
-  @IsOptional()
-  firstName?: string;
-
-  @ApiPropertyOptional({ example: 'Doe' })
-  @IsString()
-  @IsOptional()
-  lastName?: string;
-
   @ApiPropertyOptional({ example: 'newpassword123', minLength: 6 })
   @IsString()
   @MinLength(6)
@@ -34,4 +24,19 @@ export class UpdateUserDto {
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
+
+  @ApiPropertyOptional({ example: 'Nguyen Van B' })
+  @IsString()
+  @IsOptional()
+  fullName?: string;
+
+  @ApiPropertyOptional({ example: '0901234567' })
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiPropertyOptional({ example: '456 Nguyen Hue, Q1, HCM' })
+  @IsString()
+  @IsOptional()
+  deliveryAccess?: string;
 }

@@ -1,6 +1,6 @@
-# GreenBite — Healthy Food E-Commerce Frontend
+# TechMart — Electronics E-Commerce Frontend
 
-Single-vendor storefront for healthy food products. All data is mocked in-memory — no backend required.
+Single-vendor storefront for electronics products. All data is mocked in-memory — no backend required.
 
 **Fixed credentials:**
 - `admin@test.com` / `admin123` — admin role

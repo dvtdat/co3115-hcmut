@@ -13,20 +13,20 @@ const TESTIMONIALS: Testimonial[] = [
     location: "Ho Chi Minh City",
     rating: 5,
     quote:
-      "HealthyFood changed how my family eats. The produce is always incredibly fresh and the delivery is super fast!",
+      "TechMart delivered my laptop the next day. Setup was straightforward and the packaging was solid — no damage at all.",
   },
   {
     name: "Minh Tran",
     location: "Hanoi",
     rating: 5,
-    quote: "I love that everything is certified organic. I finally trust where my food comes from.",
+    quote: "Best place to buy genuine electronics online. The warranty claim process was painless.",
   },
   {
     name: "Thu Pham",
     location: "Da Nang",
     rating: 4,
     quote:
-      "Great variety and the salad kits save me so much time during the week. Highly recommend!",
+      "Great product range and competitive prices. The USB-C hub I bought has been running flawlessly for months.",
   },
 ];
 
@@ -64,7 +64,7 @@ function TestimonialCard({ testimonial }: TestimonialCardProps) {
       <CardContent className="flex flex-col gap-4 p-6">
         {/* Avatar + name */}
         <div className="flex items-center gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e8f5e9]">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#e0eaf8]">
             <span className="text-primary text-sm font-semibold">
               {getInitials(testimonial.name)}
             </span>
@@ -87,7 +87,7 @@ function TestimonialCard({ testimonial }: TestimonialCardProps) {
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-12 md:py-20" style={{ backgroundColor: "#f9fbe7" }}>
+    <section className="py-12 md:py-20" style={{ backgroundColor: "#f0f4fb" }}>
       <div className="mx-auto max-w-6xl px-4">
         {/* Header */}
         <div className="mb-12 text-center">

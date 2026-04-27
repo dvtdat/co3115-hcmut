@@ -1,6 +1,6 @@
 import { Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Leaf, ShoppingCart, Menu, LogOut, User, Package, LayoutDashboard } from "lucide-react";
+import { Cpu, ShoppingCart, Menu, LogOut, User, Package, LayoutDashboard } from "lucide-react";
 import SearchBar from "@/components/nav/SearchBar";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import { useAuthStore } from "@/store/authStore";
@@ -65,8 +65,8 @@ export default function RootLayout() {
           {/* Left — Logo + desktop nav */}
           <div className="flex shrink-0 items-center gap-6">
             <Link to="/" className="text-primary flex items-center gap-1.5 font-semibold">
-              <Leaf className="size-5" />
-              <span>HealthyFood</span>
+              <Cpu className="size-5" />
+              <span>TechMart</span>
             </Link>
 
             {/* Desktop nav links */}
@@ -179,8 +179,8 @@ export default function RootLayout() {
               <SheetContent side="left">
                 <SheetHeader>
                   <SheetTitle className="text-primary flex items-center gap-1.5">
-                    <Leaf className="size-4" />
-                    HealthyFood
+                    <Cpu className="size-4" />
+                    TechMart
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-1 p-4">
@@ -228,10 +228,10 @@ export default function RootLayout() {
       <footer className="bg-background border-t">
         <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-4 sm:px-6">
           <span className="text-primary flex items-center gap-1.5 text-sm font-semibold">
-            <Leaf className="size-4" />
-            HealthyFood
+            <Cpu className="size-4" />
+            TechMart
           </span>
-          <span className="text-muted-foreground text-xs">© 2026 HealthyFood. CO3027 HCMUT</span>
+          <span className="text-muted-foreground text-xs">© 2026 TechMart. CO3115 HCMUT</span>
         </div>
       </footer>
     </div>

@@ -60,7 +60,7 @@ export default function ChatbotWidget() {
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">
               <Bot className="text-primary size-4" />
-              <span className="text-sm font-semibold">HealthyFood Assistant</span>
+              <span className="text-sm font-semibold">TechMart Assistant</span>
             </div>
             <Button
               variant="ghost"

@@ -28,8 +28,8 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('CO3115 HCMUT API')
-    .setDescription('CO3115 HCMUT Backend API')
+    .setTitle('TechMart API')
+    .setDescription('TechMart electronics e-commerce backend API')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

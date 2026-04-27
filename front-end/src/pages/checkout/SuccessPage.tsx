@@ -16,9 +16,9 @@ export default function SuccessPage({ orderId }: SuccessPageProps) {
         <StepIndicator step={4} />
       </div>
 
-      <div className="rounded-2xl border bg-green-50 p-6 text-center dark:bg-green-950/20">
-        <CheckCircle2 className="mx-auto mb-3 size-12 text-green-600 dark:text-green-400" />
-        <h2 className="text-lg font-bold text-green-800 dark:text-green-300">Payment confirmed!</h2>
+      <div className="rounded-2xl border bg-blue-50 p-6 text-center dark:bg-blue-950/20">
+        <CheckCircle2 className="mx-auto mb-3 size-12 text-primary" />
+        <h2 className="text-lg font-bold text-primary">Payment confirmed!</h2>
         <p className="text-muted-foreground mt-2 text-sm">
           We have received your payment for order{" "}
           <span className="text-foreground font-mono font-medium">

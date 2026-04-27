@@ -223,7 +223,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                 <Input
                   id="prod-name"
                   {...form.register("name", { onChange: handleNameChange })}
-                  placeholder="e.g. Organic Broccoli"
+                  placeholder="e.g. Wireless Headphones"
                 />
                 {form.formState.errors.name && (
                   <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
@@ -237,7 +237,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                 <Input
                   id="prod-slug"
                   {...form.register("slug")}
-                  placeholder="e.g. organic-broccoli"
+                  placeholder="e.g. wireless-headphones"
                   className="font-mono text-xs"
                 />
                 {form.formState.errors.slug && (
@@ -324,7 +324,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                 )}
               </div>
 
-              {/* Nutrition & attributes */}
+              {/* Product attributes */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-1.5">
                   <Label htmlFor="prod-weight">Weight</Label>
@@ -341,7 +341,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                   </div>
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="prod-calories">Calories (kcal)</Label>
+                  <Label htmlFor="prod-calories">Power (W)</Label>
                   <Input
                     id="prod-calories"
                     type="number"
@@ -355,7 +355,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-1.5">
                   <Label htmlFor="prod-health-score">
-                    Health score <span className="text-muted-foreground font-normal">(0–10)</span>
+                    Rating <span className="text-muted-foreground font-normal">(0–10)</span>
                   </Label>
                   <Input
                     id="prod-health-score"
@@ -373,10 +373,10 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                   )}
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="prod-shelf-life">Shelf life</Label>
+                  <Label htmlFor="prod-shelf-life">Warranty</Label>
                   <Input
                     id="prod-shelf-life"
-                    placeholder="1 day (refrigerated)"
+                    placeholder="2 years"
                     {...form.register("shelfLife")}
                   />
                 </div>
@@ -389,7 +389,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                 </Label>
                 <Textarea
                   id="prod-characteristics"
-                  placeholder={"High protein\nOmega-3 rich\nLow GI"}
+                  placeholder={"Bluetooth 5.3\nUSB-C\n40h Battery"}
                   rows={3}
                   {...form.register("keyCharacteristics")}
                 />

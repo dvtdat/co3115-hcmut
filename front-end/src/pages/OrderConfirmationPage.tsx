@@ -78,9 +78,9 @@ export default function OrderConfirmationPage({ id }: OrderConfirmationPageProps
 
       {isPaid ? (
         /* ── Paid state ──────────────────────────────────────────────── */
-        <div className="rounded-2xl border bg-green-50 p-6 text-center dark:bg-green-950/20">
-          <CheckCircle2 className="mx-auto mb-3 size-10 text-green-600 dark:text-green-400" />
-          <p className="font-semibold text-green-800 dark:text-green-300">Payment confirmed!</p>
+        <div className="rounded-2xl border bg-blue-50 p-6 text-center dark:bg-blue-950/20">
+          <CheckCircle2 className="mx-auto mb-3 size-10 text-primary" />
+          <p className="font-semibold text-primary">Payment confirmed!</p>
           <p className="text-muted-foreground mt-1 text-sm">
             We have received your payment and are preparing your order.
           </p>

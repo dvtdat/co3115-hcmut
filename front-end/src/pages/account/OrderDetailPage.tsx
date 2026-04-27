@@ -201,7 +201,7 @@ export default function OrderDetailPage({ id }: OrderDetailPageProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Amount</span>
-                  <span className="font-semibold text-green-700 dark:text-green-400">
+                  <span className="font-semibold text-primary">
                     {formatVND(order.payment.amount)}
                   </span>
                 </div>

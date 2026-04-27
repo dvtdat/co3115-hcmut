@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Flame, Heart, ImageOff, Loader2, Minus, Plus, Scale } from "lucide-react";
+import { Clock, Zap, Star, ImageOff, Loader2, Minus, Plus, Scale } from "lucide-react";
 
 function formatVND(price: number | undefined): string {
   return `${(price ?? 0).toLocaleString("vi-VN")} ₫`;
@@ -208,13 +208,13 @@ function ProductAttributes({
     });
   }
   if (calories) {
-    attrs.push({ icon: Flame, label: "Calories", value: `${calories} kcal` });
+    attrs.push({ icon: Zap, label: "Power", value: `${calories} W` });
   }
   if (healthScore) {
-    attrs.push({ icon: Heart, label: "Health score", value: `${healthScore} / 10` });
+    attrs.push({ icon: Star, label: "Rating", value: `${healthScore} / 10` });
   }
   if (shelfLife) {
-    attrs.push({ icon: Clock, label: "Shelf life", value: shelfLife });
+    attrs.push({ icon: Clock, label: "Warranty", value: shelfLife });
   }
 
   if (attrs.length === 0) return null;

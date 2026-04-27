@@ -13,38 +13,38 @@ interface LandingProduct {
 
 const PRODUCTS: LandingProduct[] = [
   {
-    name: "Organic Avocado",
-    slug: "organic-avocado",
-    price: 45000,
+    name: "Wireless Noise-Cancelling Headphones",
+    slug: "wireless-noise-cancelling-headphones",
+    price: 1990000,
     badge: "Best Seller",
-    category: "Fruits",
+    category: "Audio",
   },
   {
-    name: "Mixed Greens Salad Kit",
-    slug: "mixed-greens-salad-kit",
-    price: 89000,
+    name: "Mechanical Keyboard TKL",
+    slug: "mechanical-keyboard-tkl",
+    price: 1250000,
     badge: "New",
-    category: "Vegetables",
+    category: "Peripherals",
   },
   {
-    name: "Raw Honey 500g",
-    slug: "raw-honey-500g",
-    price: 120000,
+    name: "27\" 4K Monitor",
+    slug: "27-4k-monitor",
+    price: 8500000,
     badge: null,
-    category: "Pantry",
+    category: "Displays",
   },
   {
-    name: "Chia Seeds 250g",
-    slug: "chia-seeds-250g",
-    price: 75000,
+    name: "USB-C Hub 7-in-1",
+    slug: "usb-c-hub-7-in-1",
+    price: 650000,
     badge: "Popular",
-    category: "Superfoods",
+    category: "Accessories",
   },
 ];
 
 const BADGE_STYLES: Record<string, string> = {
-  "Best Seller": "bg-green-100 text-green-700",
-  New: "bg-blue-100 text-blue-700",
+  "Best Seller": "bg-blue-100 text-blue-700",
+  New: "bg-indigo-100 text-indigo-700",
   Popular: "bg-amber-100 text-amber-700",
 };
 
@@ -62,10 +62,10 @@ function LandingProductCard({ product }: LandingProductCardProps) {
       {/* Image placeholder */}
       <div
         className="relative aspect-square overflow-hidden"
-        style={{ backgroundColor: "#f1f8e9" }}
+        style={{ backgroundColor: "#e8edf8" }}
       >
         <div className="flex h-full items-center justify-center p-4">
-          <span className="text-center text-sm leading-snug" style={{ color: "#81c784" }}>
+          <span className="text-center text-sm leading-snug" style={{ color: "#5b7fd4" }}>
             {product.name}
           </span>
         </div>
@@ -120,7 +120,7 @@ export default function FeaturedProductsSection() {
             Our Bestsellers
           </h2>
           <p className="text-muted-foreground mt-3 text-lg">
-            Handpicked favorites — loved by our community.
+            Handpicked favorites — loved by our customers.
           </p>
         </div>
 

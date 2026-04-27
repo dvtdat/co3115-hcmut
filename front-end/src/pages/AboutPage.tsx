@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 const TEAM_MEMBERS = [
-  { id: "2252045", name: "Van Duy Anh" },
-  { id: "2252607", name: "Vo Nguyen Phat" },
-  { id: "2252141", name: "Doan Viet Tien Dat" },
+  { id: "2352554", name: "Đỗ Đăng Khoa", email: "khoa.do250805@hcmut.edu.vn" },
+  { id: "2352291", name: "Châu Hùng Hào", email: "hao.chauhhc1003@hcmut.edu.vn" },
+  { id: "2352903", name: "Đỗ Thái Phong", email: "phong.do2352903@hcmut.edu.vn" },
+  { id: "2252141", name: "Đoàn Viết Tiến Đạt", email: "dat.doanviettien@hcmut.edu.vn" },
 ];
 
 const BACKEND_STACK = [
@@ -43,7 +44,7 @@ export default function AboutPage() {
         <h1 className="text-foreground text-4xl font-bold tracking-tight">About This Project</h1>
         <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed">
           A full-stack e-commerce platform built as part of the{" "}
-          <span className="text-foreground font-medium">E-Commerce</span> course at{" "}
+          <span className="text-foreground font-medium">Systems Analysis and Design</span> course at{" "}
           <span className="text-foreground font-medium">
             HCMC University of Technology - VNUHCM
           </span>
@@ -59,12 +60,18 @@ export default function AboutPage() {
           <GithubIcon className="text-primary h-5 w-5" />
           <h2 className="text-foreground text-2xl font-semibold">Team Members</h2>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TEAM_MEMBERS.map((member) => (
             <Card key={member.id} className="border-border/60">
-              <CardContent className="flex flex-col gap-2 p-6">
-                <span className="text-muted-foreground font-mono text-xs">{member.id}</span>
+              <CardContent className="flex flex-col gap-1 p-5">
                 <span className="text-foreground text-base font-semibold">{member.name}</span>
+                <span className="text-muted-foreground font-mono text-xs">{member.id}</span>
+                <a
+                  href={`mailto:${member.email}`}
+                  className="text-primary mt-1 truncate text-xs hover:underline"
+                >
+                  {member.email}
+                </a>
               </CardContent>
             </Card>
           ))}

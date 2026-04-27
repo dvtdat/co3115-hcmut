@@ -1,12 +1,12 @@
 {
-  "brand": "HealthyFood",
+  "brand": "TechMart",
   "nav": {
     "home": "Home",
     "shop": "Shop",
     "about": "About"
   },
   "search": {
-    "placeholder": "Search healthy foods…"
+    "placeholder": "Search products…"
   },
   "cart": {
     "label": "Cart"
@@ -18,6 +18,6 @@
     "signIn": "Sign In"
   },
   "footer": {
-    "copyright": "© 2026 HealthyFood. All rights reserved."
+    "copyright": "© 2026 TechMart. All rights reserved."
   }
 }

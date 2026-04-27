@@ -176,7 +176,7 @@ export default function ReviewPage({ shippingInfo }: ReviewPageProps) {
               <span>{formatVND(deliveryFee)}</span>
             </div>
             {discountAmount > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-primary">
                 <span>Voucher ({appliedCode})</span>
                 <span>−{formatVND(discountAmount)}</span>
               </div>
@@ -220,7 +220,7 @@ export default function ReviewPage({ shippingInfo }: ReviewPageProps) {
           {/* Applied badge */}
           {appliedCode && voucherPreview && !voucherError && (
             <div className="mb-3 flex items-center gap-2">
-              <Badge variant="secondary" className="gap-1.5 text-green-600">
+              <Badge variant="secondary" className="gap-1.5 text-primary">
                 <Tag className="size-3" />
                 {appliedCode} applied · −{formatVND(discountAmount)}
               </Badge>

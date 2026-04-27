@@ -8,20 +8,19 @@ interface Benefit {
 
 const BENEFITS: Benefit[] = [
   {
-    icon: "🌿",
-    title: "100% Organic",
-    description:
-      "Every product is certified organic — grown without pesticides or artificial fertilizers.",
+    icon: "⚡",
+    title: "Genuine Products",
+    description: "Every item is sourced directly from authorized distributors — 100% authentic.",
   },
   {
     icon: "🚚",
-    title: "Fresh Delivery",
-    description: "From farm to your door in under 24 hours. We don't do stale.",
+    title: "Fast Delivery",
+    description: "Order today, at your door tomorrow. Nationwide shipping with real-time tracking.",
   },
   {
-    icon: "💚",
-    title: "Nutritionist Approved",
-    description: "Our catalog is curated by certified nutritionists to support your health goals.",
+    icon: "🛡️",
+    title: "2-Year Warranty",
+    description: "All products come with a minimum 2-year warranty and dedicated after-sales support.",
   },
 ];
 
@@ -32,10 +31,10 @@ export default function BenefitsSection() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h2 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">
-            Why HealthyFood?
+            Why TechMart?
           </h2>
           <p className="text-muted-foreground mt-3 text-lg">
-            We believe good food is the foundation of a good life.
+            We make buying electronics simple, safe, and fast.
           </p>
         </div>
 

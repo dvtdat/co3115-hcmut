@@ -97,13 +97,13 @@ export default function SearchBar({ onNavigate }: SearchBarProps) {
                 {results.map((product) => (
                   <li key={product._id}>
                     <Link
-                      to="/products/$slug"
-                      params={{ slug: product.slug }}
+                      to="/products/$id"
+                      params={{ id: product._id }}
                       onClick={handleSelect}
                       className="hover:bg-muted flex items-center gap-3 px-3 py-2.5 transition-colors"
                     >
                       <img
-                        src={product.imageUrl ?? PLACEHOLDER_IMAGE}
+                        src={product.image ?? PLACEHOLDER_IMAGE}
                         alt={product.name}
                         className="size-10 shrink-0 rounded-md object-cover"
                       />

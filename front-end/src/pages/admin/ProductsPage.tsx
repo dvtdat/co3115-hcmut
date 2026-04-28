@@ -3,7 +3,7 @@ import { useForm, Controller, type SubmitHandler, type Resolver } from "react-ho
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import type { components } from "@/api/schema.d.ts";
+import type { Product } from "@/hooks/use-products";
 import {
   useProducts,
   useCreateProduct,
@@ -11,7 +11,6 @@ import {
   useDeleteProduct,
 } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-categories";
-import ImageUpload from "@/components/admin/ImageUpload";
 import TablePagination from "@/components/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,34 +54,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ImageOff, Pencil, Plus, Search, Trash2 } from "lucide-react";
 
-type Product = components["schemas"]["Product"];
-
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
   price: z.number({ error: "Price must be a number" }).min(0, "Price must be ≥ 0"),
   stock: z.number({ error: "Stock must be a number" }).int().min(0, "Stock must be ≥ 0"),
   categoryId: z.string().min(1, "Category is required"),
-  keyCharacteristics: z.string().optional(),
-  weight: z.coerce.number().nonnegative().optional(),
-  weightUnit: z.string().optional(),
-  calories: z.coerce.number().nonnegative().optional(),
-  healthScore: z.coerce.number().min(0).max(10).optional(),
-  shelfLife: z.string().optional(),
+  defaultImage: z.string().optional(),
 });
 
 type ProductValues = z.infer<typeof productSchema>;
 
 const LOW_STOCK_THRESHOLD = 5;
-
-function toSlug(str: string) {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 function formatVND(n: number) {
   return `${n.toLocaleString("vi-VN")} ₫`;
@@ -97,7 +80,6 @@ interface ProductFormDialogProps {
 
 function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
   const [open, setOpen] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | undefined>(undefined);
 
   const { data: catData } = useCategories();
   const categories = catData?.data ?? (Array.isArray(catData) ? catData : []);
@@ -109,17 +91,11 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
     resolver: zodResolver(productSchema) as Resolver<ProductValues>,
     defaultValues: {
       name: "",
-      slug: "",
       description: "",
       price: 0,
       stock: 0,
       categoryId: "",
-      keyCharacteristics: "",
-      weight: undefined,
-      weightUnit: "",
-      calories: undefined,
-      healthScore: undefined,
-      shelfLife: "",
+      defaultImage: "",
     },
   });
 
@@ -127,52 +103,29 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
     if (next) {
       form.reset({
         name: editTarget?.name ?? "",
-        slug: editTarget?.slug ?? "",
         description: editTarget?.description ?? "",
         price: editTarget?.price ?? 0,
         stock: editTarget?.stock ?? 0,
-        categoryId: editTarget?.category.id ?? "",
-        keyCharacteristics: editTarget?.keyCharacteristics?.join("\n") ?? "",
-        weight: editTarget?.weight ?? undefined,
-        weightUnit: editTarget?.weightUnit ?? "",
-        calories: editTarget?.calories ?? undefined,
-        healthScore: editTarget?.healthScore ?? undefined,
-        shelfLife: editTarget?.shelfLife ?? "",
+        categoryId: editTarget?.category._id ?? "",
+        defaultImage: editTarget?.image ?? "",
       });
-      setUploadedImageUrl(editTarget?.imageUrl);
     }
     setOpen(next);
   }
 
-  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-    form.setValue("name", e.target.value);
-    if (!editTarget) {
-      form.setValue("slug", toSlug(e.target.value), { shouldValidate: false });
-    }
-  }
-
   const onSubmit: SubmitHandler<ProductValues> = async (values) => {
-    const keyCharacteristics = values.keyCharacteristics
-      ? values.keyCharacteristics
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : undefined;
-
     const body = {
-      ...values,
-      imageUrl: uploadedImageUrl,
-      keyCharacteristics: keyCharacteristics?.length ? keyCharacteristics : undefined,
-      weight: (values.weight ?? 0) > 0 ? values.weight : undefined,
-      calories: (values.calories ?? 0) > 0 ? values.calories : undefined,
-      healthScore: (values.healthScore ?? 0) > 0 ? values.healthScore : undefined,
-      weightUnit: values.weightUnit ?? undefined,
-      shelfLife: values.shelfLife ?? undefined,
+      productName: values.name,
+      basePrice: values.price,
+      stockQuantity: values.stock,
+      categoryId: values.categoryId,
+      description: values.description ?? undefined,
+      defaultImage: values.defaultImage?.trim() || undefined,
     };
 
     try {
       if (editTarget) {
-        await updateMutation.mutateAsync({ id: editTarget.id, body });
+        await updateMutation.mutateAsync({ id: editTarget._id, body });
         toast.success("Product updated.");
       } else {
         await createMutation.mutateAsync(body);
@@ -205,43 +158,16 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
               className="grid gap-4"
             >
               <div className="grid gap-1.5">
-                <Label>Image</Label>
-                <ImageUpload
-                  folder="products"
-                  initialUrl={editTarget?.imageUrl}
-                  onUploadComplete={(url) => {
-                    setUploadedImageUrl(url ?? undefined);
-                  }}
-                  className="max-w-35"
-                />
-              </div>
-
-              <div className="grid gap-1.5">
                 <Label htmlFor="prod-name">
                   Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="prod-name"
-                  {...form.register("name", { onChange: handleNameChange })}
+                  {...form.register("name")}
                   placeholder="e.g. Wireless Headphones"
                 />
                 {form.formState.errors.name && (
                   <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
-                )}
-              </div>
-
-              <div className="grid gap-1.5">
-                <Label htmlFor="prod-slug">
-                  Slug <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="prod-slug"
-                  {...form.register("slug")}
-                  placeholder="e.g. wireless-headphones"
-                  className="font-mono text-xs"
-                />
-                {form.formState.errors.slug && (
-                  <p className="text-destructive text-xs">{form.formState.errors.slug.message}</p>
                 )}
               </div>
 
@@ -258,7 +184,7 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-1.5">
                   <Label htmlFor="prod-price">
-                    Price (₫) <span className="text-destructive">*</span>
+                    Base price (₫) <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="prod-price"
@@ -302,14 +228,14 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
-                      items={Object.fromEntries(categories.map((c) => [c.id, c.name]))}
+                      items={Object.fromEntries(categories.map((c) => [c._id, c.name]))}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id} label={cat.name}>
+                          <SelectItem key={cat._id} value={cat._id} label={cat.name}>
                             {cat.name}
                           </SelectItem>
                         ))}
@@ -324,74 +250,12 @@ function ProductFormDialog({ editTarget, trigger }: ProductFormDialogProps) {
                 )}
               </div>
 
-              {/* Product attributes */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="prod-weight">Weight</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="prod-weight"
-                      type="number"
-                      min={0}
-                      placeholder="330"
-                      {...form.register("weight")}
-                      className="flex-1"
-                    />
-                    <Input placeholder="g" {...form.register("weightUnit")} className="w-16" />
-                  </div>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="prod-calories">Power (W)</Label>
-                  <Input
-                    id="prod-calories"
-                    type="number"
-                    min={0}
-                    placeholder="280"
-                    {...form.register("calories")}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="prod-health-score">
-                    Rating <span className="text-muted-foreground font-normal">(0–10)</span>
-                  </Label>
-                  <Input
-                    id="prod-health-score"
-                    type="number"
-                    min={0}
-                    max={10}
-                    step={0.1}
-                    placeholder="8.8"
-                    {...form.register("healthScore")}
-                  />
-                  {form.formState.errors.healthScore && (
-                    <p className="text-destructive text-xs">
-                      {form.formState.errors.healthScore.message}
-                    </p>
-                  )}
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="prod-shelf-life">Warranty</Label>
-                  <Input
-                    id="prod-shelf-life"
-                    placeholder="2 years"
-                    {...form.register("shelfLife")}
-                  />
-                </div>
-              </div>
-
               <div className="grid gap-1.5">
-                <Label htmlFor="prod-characteristics">
-                  Key characteristics{" "}
-                  <span className="text-muted-foreground font-normal">(one per line)</span>
-                </Label>
-                <Textarea
-                  id="prod-characteristics"
-                  placeholder={"Bluetooth 5.3\nUSB-C\n40h Battery"}
-                  rows={3}
-                  {...form.register("keyCharacteristics")}
+                <Label htmlFor="prod-image">Image URL</Label>
+                <Input
+                  id="prod-image"
+                  {...form.register("defaultImage")}
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
             </form>
@@ -415,7 +279,7 @@ function DeleteProductDialog({ product }: { product: Product }) {
 
   async function handleDelete() {
     try {
-      await deleteMutation.mutateAsync(product.id);
+      await deleteMutation.mutateAsync(product._id);
       toast.success("Product deleted.");
       setOpen(false);
     } catch {
@@ -480,9 +344,7 @@ export default function AdminProductsPage() {
     if (!q) return products;
     return products.filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.name.toLowerCase().includes(q) ||
-        p.slug.toLowerCase().includes(q),
+        p.name.toLowerCase().includes(q) || p.category.name.toLowerCase().includes(q),
     );
   }, [products, search]);
 
@@ -565,12 +427,12 @@ export default function AdminProductsPage() {
               </TableRow>
             ) : (
               filtered.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product._id}>
                   <TableCell>
                     <div className="bg-muted flex size-10 items-center justify-center overflow-hidden rounded-md">
-                      {product.imageUrl ? (
+                      {product.image ? (
                         <img
-                          src={product.imageUrl}
+                          src={product.image}
                           alt={product.name}
                           className="size-full object-cover"
                         />

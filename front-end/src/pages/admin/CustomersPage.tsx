@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import type { components } from "@/api/schema.d.ts";
+import type { BEUser } from "@/api/services/user.api";
 import { useUsers, useUserOrders, useUpdateUserStatus } from "@/hooks/use-users";
+import type { OrderStatus } from "@/hooks/use-orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,18 +27,13 @@ import {
 import { Search } from "lucide-react";
 import TablePagination from "@/components/TablePagination";
 
-type User = components["schemas"]["User"];
-type Order = components["schemas"]["Order"];
-
-type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
-
 const ORDER_STATUS_VARIANTS: Record<
   OrderStatus,
   "default" | "secondary" | "outline" | "destructive"
 > = {
   pending: "secondary",
   confirmed: "default",
-  shipped: "default",
+  shipping: "default",
   delivered: "outline",
   cancelled: "destructive",
 };
@@ -45,7 +41,7 @@ const ORDER_STATUS_VARIANTS: Record<
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
-  shipped: "Shipped",
+  shipping: "Shipping",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
@@ -68,9 +64,9 @@ function formatDate(raw: unknown): string {
 
 // ── CustomerDetailDialog ───────────────────────────────────────────────────
 
-function CustomerDetailDialog({ user }: { user: User }) {
+function CustomerDetailDialog({ user }: { user: BEUser }) {
   const { data: ordersData, isLoading: ordersLoading } = useUserOrders(user.id);
-  const orders = ordersData?.data ?? (Array.isArray(ordersData) ? (ordersData as Order[]) : []);
+  const orders = ordersData?.data ?? [];
 
   const totalSpend = orders
     .filter((o) => o.status !== "cancelled")
@@ -81,13 +77,11 @@ function CustomerDetailDialog({ user }: { user: User }) {
       {/* Profile */}
       <div className="flex items-center gap-4">
         <div className="bg-primary/10 text-primary flex size-12 shrink-0 items-center justify-center rounded-full text-base font-semibold">
-          {user.firstName.charAt(0).toUpperCase()}
+          {user.email.charAt(0).toUpperCase()}
         </div>
         <div>
-          <p className="font-medium">
-            {user.firstName} {user.lastName}
-          </p>
-          <p className="text-muted-foreground text-sm">{user.email}</p>
+          <p className="font-medium">{user.email}</p>
+          <p className="text-muted-foreground text-sm capitalize">{user.role}</p>
         </div>
         <Badge variant="outline" className="ml-auto capitalize">
           {user.role}
@@ -142,8 +136,8 @@ function CustomerDetailDialog({ user }: { user: User }) {
               </TableHeader>
               <TableBody>
                 {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">{order.id.slice(-8)}</TableCell>
+                  <TableRow key={order._id}>
+                    <TableCell className="font-mono text-xs">{order._id.slice(-8)}</TableCell>
                     <TableCell className="tabular-nums">{formatVND(order.totalAmount)}</TableCell>
                     <TableCell>
                       <Badge
@@ -173,7 +167,7 @@ const ADMIN_PAGE_SIZE = 5;
 export default function AdminCustomersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  const [viewingUser, setViewingUser] = useState<BEUser | null>(null);
 
   const { data, isLoading, isError } = useUsers({
     pageNumber: page,
@@ -187,17 +181,13 @@ export default function AdminCustomersPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return allUsers;
-    return allUsers.filter(
-      (u) =>
-        `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q),
-    );
+    return allUsers.filter((u) => u.email.toLowerCase().includes(q));
   }, [allUsers, search]);
 
-  async function handleToggleActive(user: User, isActive: boolean) {
+  async function handleToggleActive(user: BEUser, isActive: boolean) {
     try {
-      await updateStatus.mutateAsync({ id: user.id, body: { isActive } });
-      toast.success(`${user.firstName} ${isActive ? "activated" : "deactivated"}.`);
+      await updateStatus.mutateAsync({ id: user.id, isActive });
+      toast.success(`${user.email} ${isActive ? "activated" : "deactivated"}.`);
     } catch {
       toast.error("Failed to update user status.");
     }
@@ -221,7 +211,7 @@ export default function AdminCustomersPage() {
       <div className="relative max-w-sm">
         <Search className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
         <Input
-          placeholder="Search by name or email…"
+          placeholder="Search by email…"
           className="pl-8"
           value={search}
           onChange={handleSearchChange}
@@ -236,7 +226,6 @@ export default function AdminCustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead className="hidden sm:table-cell">Role</TableHead>
               <TableHead>Active</TableHead>
@@ -247,9 +236,6 @@ export default function AdminCustomersPage() {
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-32" />
-                  </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-40" />
                   </TableCell>
@@ -264,7 +250,7 @@ export default function AdminCustomersPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground py-12 text-center">
+                <TableCell colSpan={4} className="text-muted-foreground py-12 text-center">
                   {search ? "No customers match your search." : "No customers yet."}
                 </TableCell>
               </TableRow>
@@ -273,10 +259,7 @@ export default function AdminCustomersPage() {
                 const isActive = Boolean(user.isActive);
                 return (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      {user.firstName} {user.lastName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                    <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Badge variant="outline" className="capitalize">
                         {user.role}

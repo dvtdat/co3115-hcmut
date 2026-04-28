@@ -2,8 +2,9 @@ import { z } from "zod";
 
 export const updateProfileSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+    fullName: z.string().min(1, "Full name is required"),
+    phone: z.string().optional(),
+    deliveryAccess: z.string().optional(),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")

@@ -89,7 +89,7 @@ export default function ProductsPage({ q }: ProductsPageProps) {
         {isLoading ? (
           <ProductGridSkeleton />
         ) : (
-          products.map((product) => <ProductCard key={product.id} product={product} />)
+          products.map((product) => <ProductCard key={product._id} product={product} />)
         )}
 
         {!isLoading && !isError && products.length === 0 && (

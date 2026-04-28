@@ -11,7 +11,7 @@ import { api } from "@/api/fetcher";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface BEUser {
-  _id: string;
+  id: string;
   email: string;
   role: string;       // "customer" | "admin" | "guest"
   isActive: boolean;
@@ -21,7 +21,7 @@ export interface BEUser {
 }
 
 export interface BECustomer {
-  _id: string;
+  id: string;
   fullName: string;
   phone?: string;
   deliveryAccess?: string;
@@ -63,8 +63,8 @@ export const userApi = {
   list: (params?: { pageSize?: number; pageNumber?: number }) =>
     api.get<Paginated<BEUser>>("/users", params),
 
-  /** GET /users/me — Current user profile (no password) */
-  getMe: () => api.get<BEUser>("/users/me"),
+  /** GET /users/me — Current user profile including Customer fields */
+  getMe: () => api.get<BEUser & { fullName: string; phone?: string; deliveryAccess?: string }>("/users/me"),
 
   /** GET /users/:id */
   getById: (id: string) => api.get<BEUser>(`/users/${id}`),

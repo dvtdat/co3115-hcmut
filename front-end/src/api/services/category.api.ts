@@ -11,7 +11,7 @@ import { api } from "@/api/fetcher";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface BECategory {
-  _id: string;
+  id: string;
   categoryName: string;
   description?: string;
   createdAt: string;

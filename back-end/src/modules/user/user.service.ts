@@ -82,7 +82,7 @@ export class UserService {
     });
   }
 
-  async getMe(userId: string): Promise<Omit<User, 'password'>> {
+  async getMe(userId: string): Promise<Omit<User, 'password'> & { fullName: string; phone?: string; deliveryAccess?: string }> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(userId),
       deletedAt: null,
@@ -92,8 +92,15 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
+    const customer = await this.customerRepository.findOne({ user: user._id });
+
     const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return {
+      ...userWithoutPassword,
+      fullName: customer?.fullName ?? '',
+      phone: customer?.phone,
+      deliveryAccess: customer?.deliveryAccess,
+    };
   }
 
   async update(

@@ -20,6 +20,7 @@ function ProfileSkeleton() {
       <div className="space-y-4">
         <Skeleton className="h-9 w-full" />
         <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
       </div>
     </div>
   );
@@ -38,14 +39,15 @@ export default function ProfilePage() {
     formState: { errors, isDirty },
   } = useForm<UpdateProfileValues>({
     resolver: zodResolver(updateProfileSchema),
-    defaultValues: { firstName: "", lastName: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", phone: "", deliveryAccess: "", password: "", confirmPassword: "" },
   });
 
   useEffect(() => {
     if (currentUser) {
       reset({
-        firstName: currentUser.firstName ?? "",
-        lastName: currentUser.lastName ?? "",
+        fullName: currentUser.fullName ?? "",
+        phone: currentUser.phone ?? "",
+        deliveryAccess: currentUser.deliveryAccess ?? "",
         password: "",
         confirmPassword: "",
       });
@@ -55,16 +57,13 @@ export default function ProfilePage() {
   const passwordValue = watch("password");
 
   async function onSubmit(values: UpdateProfileValues) {
-    const userId = currentUser?.id ?? user?.id;
+    const userId = user?.id;
     if (!userId) return;
-
-    const body: { firstName?: string; lastName?: string; password?: string } = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-    };
-    if (values.password) {
-      body.password = values.password;
-    }
+    const body: Record<string, string> = {};
+    if (values.fullName) body.fullName = values.fullName;
+    if (values.phone !== undefined) body.phone = values.phone ?? "";
+    if (values.deliveryAccess !== undefined) body.deliveryAccess = values.deliveryAccess ?? "";
+    if (values.password) body.password = values.password;
 
     try {
       await updateUser.mutateAsync({ id: userId, body });
@@ -78,80 +77,48 @@ export default function ProfilePage() {
   if (isLoading) return <ProfileSkeleton />;
 
   return (
-    <div className="max-w-lg space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Profile</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Manage your personal information.</p>
+        <h2 className="text-lg font-semibold">Profile</h2>
+        <p className="text-muted-foreground text-sm">{currentUser?.email}</p>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          void handleSubmit(onSubmit)(e);
-        }}
-        className="space-y-6"
-      >
-        {/* Read-only email */}
+      <Separator />
+
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-muted-foreground text-sm">
-            Email address
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={currentUser?.email ?? ""}
-            readOnly
-            disabled
-            className="cursor-not-allowed"
-          />
+          <Label htmlFor="fullName">Full name</Label>
+          <Input id="fullName" {...register("fullName")} />
+          <FieldError errors={[errors.fullName]} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="firstName">First name</Label>
-            <Input id="firstName" {...register("firstName")} />
-            <FieldError errors={[errors.firstName]} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="lastName">Last name</Label>
-            <Input id="lastName" {...register("lastName")} />
-            <FieldError errors={[errors.lastName]} />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">Phone</Label>
+          <Input id="phone" type="tel" {...register("phone")} />
+          <FieldError errors={[errors.phone]} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="deliveryAccess">Default delivery address</Label>
+          <Input id="deliveryAccess" placeholder="123 Street, City" {...register("deliveryAccess")} />
+          <FieldError errors={[errors.deliveryAccess]} />
         </div>
 
         <Separator />
 
-        <div className="space-y-4">
-          <p className="text-sm font-medium">Change password</p>
-          <p className="text-muted-foreground -mt-2 text-xs">
-            Leave blank to keep your current password.
-          </p>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="password">New password</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              {...register("password")}
-            />
-            <FieldError errors={[errors.password]} />
-          </div>
-
-          {passwordValue && (
-            <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword">Confirm new password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register("confirmPassword")}
-              />
-              <FieldError errors={[errors.confirmPassword]} />
-            </div>
-          )}
+        <div className="space-y-1.5">
+          <Label htmlFor="password">New password <span className="text-muted-foreground font-normal">(leave blank to keep current)</span></Label>
+          <Input id="password" type="password" {...register("password")} />
+          <FieldError errors={[errors.password]} />
         </div>
 
-        {errors.root && <FieldError errors={[errors.root]} />}
+        {passwordValue && (
+          <div className="space-y-1.5">
+            <Label htmlFor="confirmPassword">Confirm new password</Label>
+            <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+            <FieldError errors={[errors.confirmPassword]} />
+          </div>
+        )}
 
         <Button type="submit" disabled={!isDirty || updateUser.isPending}>
           {updateUser.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}

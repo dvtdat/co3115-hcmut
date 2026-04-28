@@ -6,9 +6,10 @@ const USER_KEY = "auth_user";
 export interface AuthUser {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
   role: string;
+  fullName: string;
+  phone?: string;
+  deliveryAccess?: string;
 }
 
 // ── Access token ──────────────────────────────────────────────────────────────

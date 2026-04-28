@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : "/dashboard",
+    redirect: typeof search.redirect === "string" ? search.redirect : "/",
   }),
   beforeLoad: ({ search }) => {
     if (useAuthStore.getState().isAuthenticated) {

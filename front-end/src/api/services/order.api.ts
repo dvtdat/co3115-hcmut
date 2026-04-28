@@ -11,14 +11,14 @@ import { api } from "@/api/fetcher";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+export type OrderStatus = "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 export type ReceivingMethod = "delivery" | "pickup";
 
 export interface BEOrderDetailProductItem {
-  _id: string;
+  id: string;
   specificPrice: number;
   product: {
-    _id: string;
+    id: string;
     productName: string;
     defaultImage?: string;
     basePrice: number;
@@ -26,7 +26,7 @@ export interface BEOrderDetailProductItem {
 }
 
 export interface BEOrderDetail {
-  _id: string;
+  id: string;
   basePrice: number;    // Product.basePrice at time of order
   unitPrice: number;    // ProductItem.specificPrice at time of order
   quantity: number;
@@ -34,18 +34,19 @@ export interface BEOrderDetail {
 }
 
 export interface BEOrderCustomer {
-  _id: string;
+  id: string;
   fullName?: string;
   phone?: string;
-  user?: { _id: string; email: string };
+  user?: { id: string; email: string };
 }
 
 export interface BEOrder {
-  _id: string;
+  id: string;
   orderDate: string;
   receivingMethod: ReceivingMethod;
   orderStatus: OrderStatus;
   totalAmount: number;
+  shippingAddress?: string;
   customer?: BEOrderCustomer;
   orderDetails?: BEOrderDetail[];
   createdAt: string;

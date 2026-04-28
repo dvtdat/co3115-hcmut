@@ -25,15 +25,15 @@ function PageFallback() {
   );
 }
 
-export const Route = createFileRoute("/products/$slug")({
+export const Route = createFileRoute("/products/$id")({
   component: ProductDetailRoute,
 });
 
 function ProductDetailRoute() {
-  const { slug } = Route.useParams();
+  const { id } = Route.useParams();
   return (
     <Suspense fallback={<PageFallback />}>
-      <ProductDetailPage slug={slug} />
+      <ProductDetailPage id={id} />
     </Suspense>
   );
 }

@@ -1,189 +1,166 @@
-import { useMemo, useState } from "react";
-import { useMockStore } from "@/mock/store";
-import type { MockProduct } from "@/mock/data";
+import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  productApi,
+  type BEProduct,
+  type BEProductItem,
+  type ProductSort,
+} from "@/api/services/product.api";
 
-type ProductSort = "newest" | "price_asc" | "price_desc" | "top_rated" | "most_viewed";
+export interface ProductItem {
+  _id: string;
+  price: number;
+  image?: string;
+  status: string;
+}
+
+export interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  stock: number;
+  image?: string;
+  description?: string;
+  category: { _id: string; name: string; description?: string };
+  items?: ProductItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+function normalizeItem(item: BEProductItem): ProductItem {
+  return { _id: item.id, price: item.specificPrice, image: item.imageURL, status: item.status };
+}
+
+function normalizeProduct(p: BEProduct): Product {
+  return {
+    _id: p.id,
+    name: p.productName,
+    price: p.basePrice,
+    stock: p.stockQuantity,
+    image: p.defaultImage,
+    description: p.description,
+    category: {
+      _id: p.category.id,
+      name: p.category.categoryName,
+      description: p.category.description,
+    },
+    items: p.productItems?.map(normalizeItem),
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  };
+}
 
 interface UseProductsParams {
   categoryId?: string;
   sort?: ProductSort;
+  search?: string;
   pageNumber?: number;
   pageSize?: number;
 }
 
-type MutateCallbacks<TData, TInput> = {
-  onSuccess?: (data: TData, variables: TInput, context?: unknown) => void;
-  onError?: (error: Error, variables: TInput, context?: unknown) => void;
-};
+export function useProducts(params?: UseProductsParams) {
+  return useQuery({
+    queryKey: ["products", params],
+    queryFn: async () => {
+      const res = await productApi.list(params);
+      return { ...res, data: res.data.map(normalizeProduct) };
+    },
+  });
+}
 
-const DELAY = 300;
-const delay = () => new Promise<void>((r) => setTimeout(r, DELAY));
-
-function sortProducts(products: MockProduct[], sort?: ProductSort): MockProduct[] {
-  const arr = [...products];
-  switch (sort) {
-    case "price_asc":
-      return arr.sort((a, b) => a.price - b.price);
-    case "price_desc":
-      return arr.sort((a, b) => b.price - a.price);
-    case "newest":
-      return arr.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    default:
-      return arr;
-  }
+export function useInfiniteProducts(params?: Omit<UseProductsParams, "pageNumber">) {
+  return useInfiniteQuery({
+    queryKey: ["products", "infinite", params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await productApi.list({
+        ...params,
+        pageNumber: pageParam as number,
+        pageSize: 20,
+      });
+      return { ...res, data: res.data.map(normalizeProduct) };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (last) =>
+      last.pageNumber < last.totalPages ? last.pageNumber + 1 : undefined,
+  });
 }
 
 export function useProductSearch(query: string) {
-  const products = useMockStore((s) => s.products);
-  const results = useMemo(() => {
-    if (query.trim().length < 2) return null;
-    const term = query.trim().toLowerCase();
-    return products
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(term) ||
-          p.description?.toLowerCase().includes(term),
-      )
-      .slice(0, 3) as any[];
-  }, [query, products]);
-  return { data: results, isFetching: false };
-}
-
-export function useProducts(params?: UseProductsParams) {
-  const products = useMockStore((s) => s.products);
-  const data = useMemo(() => {
-    let list = sortProducts(products, params?.sort);
-    if (params?.categoryId) {
-      list = list.filter((p) => p.category.id === params.categoryId);
-    }
-    const pageSize = params?.pageSize ?? 20;
-    const pageNumber = params?.pageNumber ?? 1;
-    const total = list.length;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const start = (pageNumber - 1) * pageSize;
-    const data = list.slice(start, start + pageSize) as any[];
-    return { data, total, pageSize, pageNumber, totalPages };
-  }, [products, params?.categoryId, params?.sort, params?.pageNumber, params?.pageSize]);
-  return { data, isLoading: false, isError: false };
-}
-
-const PAGE_SIZE = 20;
-
-export function useInfiniteProducts(params?: UseProductsParams) {
-  const products = useMockStore((s) => s.products);
-  const data = useMemo(() => {
-    let list = sortProducts(products, params?.sort);
-    if (params?.categoryId) {
-      list = list.filter((p) => p.category.id === params.categoryId);
-    }
-    const total = list.length;
-    return {
-      pages: [{ data: list as any[], total, pageNumber: 1, pageSize: PAGE_SIZE, totalPages: 1 }],
-      pageParams: [1],
-    };
-  }, [products, params?.sort, params?.categoryId]);
-  return {
-    data,
-    isLoading: false,
-    isError: false,
-    isFetchingNextPage: false,
-    hasNextPage: false,
-    fetchNextPage: () => {},
-  };
-}
-
-export function useProductBySlug(slug: string) {
-  const products = useMockStore((s) => s.products);
-  const data = useMemo(() => (products.find((p) => p.slug === slug) ?? null) as any, [products, slug]);
-  return { data, isLoading: false, isError: !data && !!slug };
+  return useQuery({
+    queryKey: ["products", "search", query],
+    queryFn: async () => {
+      const res = await productApi.list({ search: query, pageSize: 5 });
+      return res.data.map(normalizeProduct);
+    },
+    enabled: query.trim().length >= 2,
+  });
 }
 
 export function useProduct(id: string) {
-  const products = useMockStore((s) => s.products);
-  const data = useMemo(() => (products.find((p) => p.id === id) ?? null) as any, [products, id]);
-  return { data, isLoading: false, isError: false };
+  return useQuery({
+    queryKey: ["products", id],
+    queryFn: async () => normalizeProduct(await productApi.getById(id)),
+    enabled: !!id,
+  });
 }
 
 export function useCreateProduct() {
-  const addProduct = useMockStore((s) => s.addProduct);
-  const categories = useMockStore((s) => s.categories);
-  const [isPending, setIsPending] = useState(false);
-
-  async function mutateAsync(body: {
-    name: string;
-    slug: string;
-    price: number;
-    stock: number;
-    categoryId: string;
-    description?: string;
-    imageUrl?: string;
-    keyCharacteristics?: string[];
-    weight?: number;
-    weightUnit?: string;
-    calories?: number;
-    healthScore?: number;
-    shelfLife?: string;
-  }) {
-    setIsPending(true);
-    await delay();
-    const category = categories.find((c) => c.id === body.categoryId) ?? categories[0]!;
-    const product = addProduct({ ...body, category, deletedAt: null, viewCount: 0 });
-    setIsPending(false);
-    return product;
-  }
-
-  function mutate(body: Parameters<typeof mutateAsync>[0], callbacks?: MutateCallbacks<MockProduct, typeof body>) {
-    void mutateAsync(body)
-      .then((d) => callbacks?.onSuccess?.(d, body))
-      .catch((e: unknown) => callbacks?.onError?.(e instanceof Error ? e : new Error(String(e)), body));
-  }
-
-  return { mutateAsync, mutate, isPending };
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: productApi.create,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
 }
 
 export function useUpdateProduct() {
-  const editProduct = useMockStore((s) => s.editProduct);
-  const categories = useMockStore((s) => s.categories);
-  const [isPending, setIsPending] = useState(false);
-
-  async function mutateAsync({ id, body }: { id: string; body: Partial<MockProduct> & { categoryId?: string } }) {
-    setIsPending(true);
-    await delay();
-    const updates: Partial<MockProduct> = { ...body };
-    if (body.categoryId) {
-      updates.category = categories.find((c) => c.id === body.categoryId) ?? undefined;
-    }
-    const product = editProduct(id, updates);
-    setIsPending(false);
-    return product;
-  }
-
-  function mutate(input: Parameters<typeof mutateAsync>[0], callbacks?: MutateCallbacks<MockProduct | null, typeof input>) {
-    void mutateAsync(input)
-      .then((d) => callbacks?.onSuccess?.(d, input))
-      .catch((e: unknown) => callbacks?.onError?.(e instanceof Error ? e : new Error(String(e)), input));
-  }
-
-  return { mutateAsync, mutate, isPending };
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Parameters<typeof productApi.update>[1] }) =>
+      productApi.update(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
 }
 
 export function useDeleteProduct() {
-  const removeProduct = useMockStore((s) => s.removeProduct);
-  const [isPending, setIsPending] = useState(false);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => productApi.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
+}
 
-  async function mutateAsync(id: string) {
-    setIsPending(true);
-    await delay();
-    removeProduct(id);
-    setIsPending(false);
-    return { id };
-  }
+export function useCreateProductItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      body,
+    }: {
+      productId: string;
+      body: Parameters<typeof productApi.createItem>[1];
+    }) => productApi.createItem(productId, body),
+    onSuccess: (_data, { productId }) =>
+      qc.invalidateQueries({ queryKey: ["products", productId] }),
+  });
+}
 
-  function mutate(id: string, callbacks?: MutateCallbacks<{ id: string }, string>) {
-    void mutateAsync(id)
-      .then((d) => callbacks?.onSuccess?.(d, id))
-      .catch((e: unknown) => callbacks?.onError?.(e instanceof Error ? e : new Error(String(e)), id));
-  }
+export function useUpdateProductItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      body,
+    }: {
+      itemId: string;
+      body: Parameters<typeof productApi.updateItem>[1];
+    }) => productApi.updateItem(itemId, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
+}
 
-  return { mutateAsync, mutate, isPending };
+export function useDeleteProductItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => productApi.removeItem(itemId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
 }

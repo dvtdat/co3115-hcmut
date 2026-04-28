@@ -49,7 +49,6 @@ async function bootstrap() {
     });
     const url = listener.url();
     logger.log(`Ngrok tunnel: ${url}`);
-    logger.log(`Casso webhook URL: ${url}/webhooks/casso`);
   }
 }
 void bootstrap();

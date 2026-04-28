@@ -1,4 +1,4 @@
-import type { components } from "@/api/schema.d.ts";
+import type { CartItem } from "@/hooks/use-cart";
 import { useCart, useRemoveCartItem, useUpdateCartItem } from "@/hooks/use-cart";
 import { useAuthStore } from "@/store/authStore";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ImageOff, Loader2, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
-
-type CartItem = components["schemas"]["CartItem"];
 
 function formatVND(price: number | undefined): string {
   return `${(price ?? 0).toLocaleString("vi-VN")} ₫`;
@@ -27,23 +25,23 @@ function CartItemRow({ item }: { item: CartItem }) {
 
   function handleQtyChange(next: number) {
     updateItem.mutate({
-      productId: item.product.id,
+      cartItemId: item._id,
       body: { quantity: next },
     });
   }
 
   function handleRemove() {
-    removeItem.mutate(item.product.id);
+    removeItem.mutate(item._id);
   }
 
   return (
     <div className="flex gap-4 py-5">
       {/* Thumbnail */}
-      <a href={`/products/${item.product.slug}`} className="shrink-0">
+      <a href={`/products/${item.product._id}`} className="shrink-0">
         <div className="bg-muted size-20 overflow-hidden rounded-lg">
-          {item.product.imageUrl ? (
+          {item.product.image ? (
             <img
-              src={item.product.imageUrl}
+              src={item.product.image}
               alt={item.product.name}
               className="size-full object-cover"
             />
@@ -60,7 +58,7 @@ function CartItemRow({ item }: { item: CartItem }) {
         {/* Name, badge, unit price */}
         <div className="min-w-0 flex-1 space-y-1">
           <a
-            href={`/products/${item.product.slug}`}
+            href={`/products/${item.product._id}`}
             className="line-clamp-2 text-sm leading-snug font-medium hover:underline"
           >
             {item.product.name}
@@ -255,7 +253,7 @@ export default function CartPage() {
         {/* Item list */}
         <div className="flex flex-col divide-y">
           {items.map((item) => (
-            <CartItemRow key={item.product.id} item={item} />
+            <CartItemRow key={item._id} item={item} />
           ))}
         </div>
 

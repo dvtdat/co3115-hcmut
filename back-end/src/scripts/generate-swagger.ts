@@ -9,8 +9,8 @@ async function generate() {
   const app = await NestFactory.create(AppModule, { logger: false });
 
   const config = new DocumentBuilder()
-    .setTitle('Healthy Food E-Commerce API')
-    .setDescription('Healthy Food E-Commerce API description')
+    .setTitle('TechMart API')
+    .setDescription('TechMart electronics e-commerce backend API')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

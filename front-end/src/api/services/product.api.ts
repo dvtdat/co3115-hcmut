@@ -11,21 +11,21 @@ import { api } from "@/api/fetcher";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface BECategory {
-  _id: string;
+  id: string;
   categoryName: string;
   description?: string;
 }
 
 export interface BEProductItem {
-  _id: string;
+  id: string;
   specificPrice: number;
   imageURL?: string;
-  status: "available" | "reserved" | "sold";
-  product?: string; // ObjectId ref
+  status: "available" | "out_of_stock" | "discontinued";
+  product?: string;
 }
 
 export interface BEProduct {
-  _id: string;
+  id: string;
   productName: string;
   description?: string;
   basePrice: number;
@@ -59,13 +59,13 @@ export interface UpdateProductRequest {
 export interface CreateProductItemRequest {
   specificPrice: number;
   imageURL?: string;
-  status?: "available" | "reserved" | "sold";
+  status?: "available" | "out_of_stock" | "discontinued";
 }
 
 export interface UpdateProductItemRequest {
   specificPrice?: number;
   imageURL?: string;
-  status?: "available" | "reserved" | "sold";
+  status?: "available" | "out_of_stock" | "discontinued";
 }
 
 export interface Paginated<T> {

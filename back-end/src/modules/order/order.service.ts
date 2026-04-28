@@ -66,9 +66,7 @@ export class OrderService {
 
     // Create order
     const order = new Order(totalAmount, dto.receivingMethod, customer);
-    if (shippingAddress) {
-      // Store as a note since ERD doesn't have shippingAddress on Order
-    }
+    if (shippingAddress) order.shippingAddress = shippingAddress;
     em.persist(order);
 
     // Convert CartItems → OrderDetails and update stock
@@ -150,7 +148,7 @@ export class OrderService {
   async findOne(id: string, userId?: string) {
     const order = await this.orderRepo.findOne(
       { _id: new ObjectId(id), deletedAt: null },
-      { populate: ['customer', 'customer.user', 'orderDetails', 'orderDetails.productItem'] },
+      { populate: ['customer', 'customer.user', 'orderDetails', 'orderDetails.productItem', 'orderDetails.productItem.product'] },
     );
     if (!order) throw new NotFoundException('Order not found');
     return order;

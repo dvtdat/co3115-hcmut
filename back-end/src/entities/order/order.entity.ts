@@ -44,6 +44,10 @@ export class Order extends BaseEntity {
   @Property({ type: 'double' })
   totalAmount!: number;
 
+  @ApiProperty({ example: '123 Nguyen Hue, Q1, HCM', nullable: true })
+  @Property({ nullable: true })
+  shippingAddress?: string;
+
   @ManyToOne(() => Customer)
   customer!: Customer;
 

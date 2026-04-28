@@ -1,10 +1,22 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, ParseIntPipe, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth, ApiCreatedResponse, ApiOkResponse,
-  ApiOperation, ApiTags, getSchemaPath,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
@@ -12,7 +24,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole, Order, OrderStatus } from 'src/entities';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { CurrentUser, CurrentUserData } from 'src/common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  CurrentUserData,
+} from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -24,10 +39,7 @@ export class OrderController {
   @Post()
   @ApiOperation({ summary: 'Create order from current cart' })
   @ApiCreatedResponse({ type: Order })
-  create(
-    @CurrentUser() user: CurrentUserData,
-    @Body() dto: CreateOrderDto,
-  ) {
+  create(@CurrentUser() user: CurrentUserData, @Body() dto: CreateOrderDto) {
     return this.orderService.create(user._id, dto);
   }
 
@@ -94,10 +106,7 @@ export class OrderController {
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update order status (admin)' })
   @ApiOkResponse({ type: Order })
-  updateStatus(
-    @Param('id') id: string,
-    @Body() dto: UpdateOrderStatusDto,
-  ) {
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.orderService.updateStatus(id, dto);
   }
 }

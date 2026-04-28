@@ -2,7 +2,6 @@ import { Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Cpu, ShoppingCart, Menu, LogOut, User, Package, LayoutDashboard } from "lucide-react";
 import SearchBar from "@/components/nav/SearchBar";
-import ChatbotWidget from "@/components/ChatbotWidget";
 import { useAuthStore } from "@/store/authStore";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
@@ -48,9 +47,9 @@ export default function RootLayout() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const userInitials = user
-    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
-    : "?";
+  const userInitials = user?.fullName
+    ? user.fullName.charAt(0).toUpperCase()
+    : (user?.email?.charAt(0).toUpperCase() ?? "?");
 
   function handleLogout() {
     logout();
@@ -220,9 +219,6 @@ export default function RootLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-
-      {/* ── Chatbot ── */}
-      {isAuthenticated && <ChatbotWidget />}
 
       {/* ── Footer ── */}
       <footer className="bg-background border-t">

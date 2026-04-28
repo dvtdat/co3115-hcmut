@@ -7,14 +7,13 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { ArrowLeft, ImageOff, Loader2 } from "lucide-react";
 import { useOrder, useUpdateOrderStatus } from "@/hooks/use-orders";
+import type { OrderStatus } from "@/hooks/use-orders";
 import { OrderStatusBadge } from "@/components/order/OrderStatusBadge";
 import { OrderStatusTimeline } from "@/components/order/OrderStatusTimeline";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -31,18 +30,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { components } from "@/api/schema.d.ts";
 
 interface AdminOrderDetailPageProps {
   id: string;
 }
 
-type OrderStatus = components["schemas"]["Order"]["status"];
-
 const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
   pending: ["confirmed", "cancelled"],
-  confirmed: ["shipped", "cancelled"],
-  shipped: ["delivered"],
+  confirmed: ["shipping", "cancelled"],
+  shipping: ["delivered"],
   delivered: [],
   cancelled: [],
 };
@@ -50,28 +46,14 @@ const NEXT_STATUSES: Record<OrderStatus, OrderStatus[]> = {
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
-  shipped: "Shipped",
+  shipping: "Shipping",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
 
-const statusUpdateSchema = z
-  .object({
-    status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
-    trackingNumber: z.string().optional(),
-    courierName: z.string().optional(),
-    estimatedDeliveryDate: z.string().optional(),
-    note: z.string().optional(),
-  })
-  .superRefine((val, ctx) => {
-    if (val.status === "shipped" && !val.trackingNumber?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["trackingNumber"],
-        message: "Tracking number is required when shipping",
-      });
-    }
-  });
+const statusUpdateSchema = z.object({
+  status: z.enum(["pending", "confirmed", "shipping", "delivered", "cancelled"]),
+});
 
 type StatusUpdateValues = z.infer<typeof statusUpdateSchema>;
 
@@ -84,37 +66,21 @@ function formatVND(amount: number) {
 interface StatusUpdateDialogProps {
   orderId: string;
   currentStatus: OrderStatus;
-  defaultTrackingNumber?: string;
-  defaultCourierName?: string;
 }
 
-function StatusUpdateDialog({
-  orderId,
-  currentStatus,
-  defaultTrackingNumber,
-  defaultCourierName,
-}: StatusUpdateDialogProps) {
+function StatusUpdateDialog({ orderId, currentStatus }: StatusUpdateDialogProps) {
   const [open, setOpen] = useState(false);
   const updateStatus = useUpdateOrderStatus();
   const nextOptions = NEXT_STATUSES[currentStatus];
 
   const form = useForm<StatusUpdateValues>({
     resolver: zodResolver(statusUpdateSchema),
-    defaultValues: {
-      status: nextOptions[0] ?? currentStatus,
-      trackingNumber: defaultTrackingNumber ?? "",
-      courierName: defaultCourierName ?? "",
-      estimatedDeliveryDate: "",
-      note: "",
-    },
+    defaultValues: { status: nextOptions[0] ?? currentStatus },
   });
-
-  const watchedStatus = form.watch("status");
-  const isShipping = watchedStatus === "shipped";
 
   async function onSubmit(values: StatusUpdateValues) {
     try {
-      await updateStatus.mutateAsync({ id: orderId, body: values });
+      await updateStatus.mutateAsync({ id: orderId, status: values.status });
       toast.success("Order status updated.");
       setOpen(false);
       form.reset();
@@ -128,7 +94,7 @@ function StatusUpdateDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>Update status</DialogTrigger>
-      <DialogContent className="max-h-[75dvh] sm:max-w-[60dvw]">
+      <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Update order status</DialogTitle>
         </DialogHeader>
@@ -159,52 +125,6 @@ function StatusUpdateDialog({
                     </SelectContent>
                   </Select>
                 )}
-              />
-            </div>
-
-            {isShipping && (
-              <>
-                <div className="space-y-1.5">
-                  <Label htmlFor="tracking">
-                    Tracking number <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="tracking"
-                    placeholder="e.g. VN123456789"
-                    {...form.register("trackingNumber")}
-                  />
-                  {form.formState.errors.trackingNumber && (
-                    <p className="text-destructive text-xs">
-                      {form.formState.errors.trackingNumber.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="courier">Courier name</Label>
-                  <Input
-                    id="courier"
-                    placeholder="e.g. Giao Hang Nhanh"
-                    {...form.register("courierName")}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="est-delivery">Estimated delivery date</Label>
-                  <Input
-                    id="est-delivery"
-                    type="date"
-                    {...form.register("estimatedDeliveryDate")}
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="note">Note (optional)</Label>
-              <Textarea
-                id="note"
-                placeholder="Internal note for this transition…"
-                rows={2}
-                {...form.register("note")}
               />
             </div>
           </form>
@@ -265,31 +185,29 @@ export default function AdminOrderDetailPage({ id }: AdminOrderDetailPageProps) 
           </Button>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-muted-foreground font-mono text-sm font-semibold">
-              #{order.id.slice(-8).toUpperCase()}
+              #{order._id.slice(-8).toUpperCase()}
             </h1>
             <OrderStatusBadge status={order.status} />
           </div>
           <p className="text-muted-foreground text-xs">
-            {format(new Date(order.createdAt as unknown as string), "MMMM d, yyyy 'at' h:mm a")}
+            {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}
           </p>
         </div>
 
-        <StatusUpdateDialog
-          orderId={id}
-          currentStatus={order.status}
-          defaultTrackingNumber={order.trackingNumber}
-          defaultCourierName={order.courierName}
-        />
+        <StatusUpdateDialog orderId={id} currentStatus={order.status} />
       </div>
 
       {/* Customer info */}
       <div className="rounded-xl border p-5">
         <h2 className="mb-3 font-medium">Customer</h2>
         <div className="space-y-1 text-sm">
-          <p>
-            {order.user.firstName} {order.user.lastName}
-          </p>
-          <p className="text-muted-foreground">{order.user.email}</p>
+          {order.customer?.fullName && <p>{order.customer.fullName}</p>}
+          {order.customer?.email && (
+            <p className="text-muted-foreground">{order.customer.email}</p>
+          )}
+          {order.customer?.phone && (
+            <p className="text-muted-foreground">{order.customer.phone}</p>
+          )}
         </div>
       </div>
 
@@ -300,34 +218,34 @@ export default function AdminOrderDetailPage({ id }: AdminOrderDetailPageProps) 
           <div className="rounded-xl border p-5">
             <h2 className="mb-4 font-medium">Items</h2>
             <div className="divide-y">
-              {order.items?.map((item) => (
-                <div key={item.id} className="flex gap-3 py-3">
-                  <div className="bg-muted size-14 shrink-0 overflow-hidden rounded-lg">
-                    {item.product.imageUrl ? (
-                      <img
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-muted-foreground flex size-full items-center justify-center">
-                        <ImageOff className="size-4 opacity-30" />
+              {order.items?.map((item) => {
+                const itemImage = item.productItem.image ?? item.productItem.product?.image;
+                const itemName = item.productItem.product?.name ?? "Unknown product";
+                return (
+                  <div key={item._id} className="flex gap-3 py-3">
+                    <div className="bg-muted size-14 shrink-0 overflow-hidden rounded-lg">
+                      {itemImage ? (
+                        <img src={itemImage} alt={itemName} className="size-full object-cover" />
+                      ) : (
+                        <div className="text-muted-foreground flex size-full items-center justify-center">
+                          <ImageOff className="size-4 opacity-30" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-1 items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <p className="text-sm leading-snug font-medium">{itemName}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {item.quantity} × {formatVND(item.unitPrice)}
+                        </p>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 items-start justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <p className="text-sm leading-snug font-medium">{item.product.name}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {item.quantity} × {formatVND(item.unitPrice)}
+                      <p className="text-sm font-semibold whitespace-nowrap">
+                        {formatVND(item.quantity * item.unitPrice)}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold whitespace-nowrap">
-                      {formatVND(item.quantity * item.unitPrice)}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <Separator className="my-4" />
             <div className="flex justify-between text-sm font-semibold">
@@ -339,34 +257,13 @@ export default function AdminOrderDetailPage({ id }: AdminOrderDetailPageProps) 
           {/* Payment */}
           <div className="rounded-xl border p-5">
             <h2 className="mb-3 font-medium">Payment</h2>
-            {order.payment ? (
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bank</span>
-                  <span>{order.payment.bankName ?? order.payment.bankAbbreviation ?? "—"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Account</span>
-                  <span className="font-mono text-xs">{order.payment.accountNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount received</span>
-                  <span className="font-semibold text-primary">
-                    {formatVND(order.payment.amount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Confirmed at</span>
-                  <span>{format(new Date(order.payment.confirmedAt), "MMM d, yyyy · h:mm a")}</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                {order.status === "cancelled"
-                  ? "No payment collected."
-                  : "Payment not yet confirmed."}
-              </p>
-            )}
+            <p className="text-muted-foreground text-sm">
+              {order.status === "cancelled"
+                ? "No payment collected."
+                : order.status === "pending"
+                  ? "Payment not yet confirmed. Set status to Confirmed once payment is received."
+                  : "Payment confirmed."}
+            </p>
           </div>
         </div>
 
@@ -375,30 +272,17 @@ export default function AdminOrderDetailPage({ id }: AdminOrderDetailPageProps) 
           {/* Status timeline */}
           <div className="rounded-xl border p-5">
             <h2 className="mb-4 font-medium">Status history</h2>
-            <OrderStatusTimeline currentStatus={order.status} statusHistory={order.statusHistory} />
+            <OrderStatusTimeline currentStatus={order.status} />
           </div>
 
-          {/* Shipping */}
+          {/* Delivery */}
           <div className="rounded-xl border p-5">
-            <h2 className="mb-3 font-medium">Shipping</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">{order.shippingAddress}</p>
-            {order.notes && (
-              <p className="text-muted-foreground mt-2 text-xs italic">{order.notes}</p>
-            )}
-            {order.trackingNumber && (
-              <div className="mt-3 space-y-1 text-sm">
-                <p className="font-medium">Tracking</p>
-                <p className="text-muted-foreground font-mono text-xs">{order.trackingNumber}</p>
-                {order.courierName && (
-                  <p className="text-muted-foreground text-xs">via {order.courierName}</p>
-                )}
-              </div>
-            )}
-            {order.estimatedDeliveryDate && (
-              <div className="mt-3 text-sm">
-                <span className="text-muted-foreground">Est. delivery: </span>
-                <span>{format(new Date(order.estimatedDeliveryDate), "MMM d, yyyy")}</span>
-              </div>
+            <h2 className="mb-3 font-medium">Delivery</h2>
+            <p className="text-sm font-medium capitalize">{order.receivingMethod}</p>
+            {order.shippingAddress && (
+              <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+                {order.shippingAddress}
+              </p>
             )}
           </div>
         </div>

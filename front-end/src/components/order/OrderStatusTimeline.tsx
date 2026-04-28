@@ -1,99 +1,55 @@
-import type { components } from "@/api/schema.d.ts";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
-type StatusHistoryEntry = components["schemas"]["StatusHistoryEntry"];
-type OrderStatus = components["schemas"]["Order"]["status"];
+import type { OrderStatus } from "@/hooks/use-orders";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Order Placed",
   confirmed: "Order Confirmed",
-  shipped: "Shipped",
+  shipping: "Shipped",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
 
-const ALL_STATUSES: OrderStatus[] = ["pending", "confirmed", "shipped", "delivered"];
+const FLOW: OrderStatus[] = ["pending", "confirmed", "shipping", "delivered"];
 
 interface OrderStatusTimelineProps {
   currentStatus: OrderStatus;
-  statusHistory: StatusHistoryEntry[];
 }
 
-export function OrderStatusTimeline({ currentStatus, statusHistory }: OrderStatusTimelineProps) {
+export function OrderStatusTimeline({ currentStatus }: OrderStatusTimelineProps) {
   const isCancelled = currentStatus === "cancelled";
+  const activeIndex = FLOW.indexOf(currentStatus);
 
-  const historyMap = new Map(statusHistory.map((entry) => [entry.status, entry]));
-
-  const displayStatuses = isCancelled
-    ? [...statusHistory]
-    : ALL_STATUSES.map((status) => ({
-        status,
-        changedAt: historyMap.get(status)?.changedAt ?? null,
-        note: historyMap.get(status)?.note,
-      }));
-
-  const activeIndex = isCancelled
-    ? displayStatuses.length - 1
-    : ALL_STATUSES.indexOf(currentStatus);
+  const steps = isCancelled
+    ? [...FLOW.slice(0, 1), "cancelled" as OrderStatus]
+    : FLOW;
 
   return (
     <ol className="border-border relative ml-3 border-l">
-      {displayStatuses.map((entry, index) => {
-        const isDone = isCancelled ? true : index <= activeIndex;
-        const isCurrent = isCancelled
-          ? index === displayStatuses.length - 1
-          : index === activeIndex;
-        const isCancelledStep = entry.status === "cancelled";
+      {steps.map((status, index) => {
+        const isDone = isCancelled ? index === 0 : index <= activeIndex;
+        const isCurrent = isCancelled ? status === "cancelled" : index === activeIndex;
 
         return (
-          <li key={entry.status} className="mb-6 ml-6 last:mb-0">
+          <li key={status} className="mb-6 ml-6 last:mb-0">
             <span
               className={cn(
                 "ring-background absolute -left-3 flex size-6 items-center justify-center rounded-full ring-4",
-                isDone
-                  ? isCancelledStep
+                isDone || isCurrent
+                  ? status === "cancelled"
                     ? "bg-destructive"
                     : "bg-primary"
                   : "border-muted-foreground/30 bg-background border-2",
               )}
             >
-              {isDone && (
-                <svg
-                  className="size-3 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                  aria-hidden="true"
-                >
+              {(isDone || isCurrent) && (
+                <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               )}
             </span>
-
-            <div className="flex flex-col gap-0.5">
-              <p
-                className={cn(
-                  "text-sm font-medium",
-                  isCurrent
-                    ? "text-foreground"
-                    : isDone
-                      ? "text-foreground"
-                      : "text-muted-foreground",
-                )}
-              >
-                {STATUS_LABELS[entry.status] ?? entry.status}
-              </p>
-
-              {entry.changedAt && (
-                <time className="text-muted-foreground text-xs">
-                  {format(new Date(entry.changedAt), "MMM d, yyyy · h:mm a")}
-                </time>
-              )}
-
-              {entry.note && <p className="text-muted-foreground mt-0.5 text-xs">{entry.note}</p>}
-            </div>
+            <p className={cn("text-sm font-medium", isCurrent ? "text-foreground" : isDone ? "text-foreground" : "text-muted-foreground")}>
+              {STATUS_LABELS[status] ?? status}
+            </p>
           </li>
         );
       })}

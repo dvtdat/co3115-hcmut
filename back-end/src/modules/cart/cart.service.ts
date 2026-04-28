@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
-import { ShoppingCart, CartItem, ProductItem, Customer, ProductItemStatus } from 'src/entities';
+import { ShoppingCart, CartItem, ProductItem, Customer, User, ProductItemStatus } from 'src/entities';
 import { AddCartItemDto, UpdateCartItemDto } from './dto';
 
 @Injectable()
@@ -15,12 +15,22 @@ export class CartService {
     private readonly productItemRepo: EntityRepository<ProductItem>,
     @InjectRepository(Customer)
     private readonly customerRepo: EntityRepository<Customer>,
+    @InjectRepository(User)
+    private readonly userRepo: EntityRepository<User>,
   ) {}
 
   private async findCustomer(userId: string) {
     const customer = await this.customerRepo.findOne({ user: new ObjectId(userId) });
-    if (!customer) throw new NotFoundException('Customer profile not found');
-    return customer;
+    if (customer) return customer;
+
+    const user = await this.userRepo.findOne({ _id: new ObjectId(userId) });
+    if (!user) throw new NotFoundException('User not found');
+
+    const em = this.cartRepo.getEntityManager();
+    const newCustomer = new Customer(user, user.email);
+    em.persist(newCustomer);
+    await em.flush();
+    return newCustomer;
   }
 
   private async findOrCreateCart(customer: Customer): Promise<ShoppingCart> {

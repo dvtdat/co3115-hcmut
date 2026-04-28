@@ -12,7 +12,7 @@ import { api } from "@/api/fetcher";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface BECartItemProduct {
-  _id: string;
+  id: string;
   productName: string;
   basePrice: number;
   stockQuantity: number;
@@ -20,14 +20,14 @@ export interface BECartItemProduct {
 }
 
 export interface BECartItemProductItem {
-  _id: string;
+  id: string;
   specificPrice: number;
   imageURL?: string;
   product: BECartItemProduct;
 }
 
 export interface BECartItem {
-  _id: string;
+  id: string;
   quantity: number;
   productItem: BECartItemProductItem;
   createdAt: string;
@@ -35,7 +35,7 @@ export interface BECartItem {
 }
 
 export interface BECart {
-  _id: string;
+  id: string;
   cartItems: BECartItem[];
 }
 

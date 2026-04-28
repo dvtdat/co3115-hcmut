@@ -1,4 +1,5 @@
 import { useOrders } from "@/hooks/use-orders";
+import type { OrderStatus } from "@/hooks/use-orders";
 import { useProducts } from "@/hooks/use-products";
 import { useUsers } from "@/hooks/use-users";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +15,10 @@ import {
 } from "@/components/ui/table";
 import { Package, ShoppingBag, Users, TrendingUp } from "lucide-react";
 
-type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
-
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
-  shipped: "Shipped",
+  shipping: "Shipping",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
@@ -27,7 +26,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
   pending: "secondary",
   confirmed: "default",
-  shipped: "default",
+  shipping: "default",
   delivered: "outline",
   cancelled: "destructive",
 };
@@ -85,11 +84,10 @@ export default function AdminDashboardPage() {
     .filter((o) => o.status !== "cancelled")
     .reduce((sum, o) => sum + (o.totalAmount ?? 0), 0);
 
+  const ALL_ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "shipping", "delivered", "cancelled"];
+
   const statusCounts = Object.fromEntries(
-    (["pending", "confirmed", "shipped", "delivered", "cancelled"] as OrderStatus[]).map((s) => [
-      s,
-      orders.filter((o) => o.status === s).length,
-    ]),
+    ALL_ORDER_STATUSES.map((s) => [s, orders.filter((o) => o.status === s).length]),
   ) as Record<OrderStatus, number>;
 
   const recentOrders = [...orders]
@@ -142,18 +140,16 @@ export default function AdminDashboardPage() {
       <div>
         <h2 className="mb-3 text-sm font-medium">Orders by Status</h2>
         <div className="flex flex-wrap gap-2">
-          {(["pending", "confirmed", "shipped", "delivered", "cancelled"] as OrderStatus[]).map(
-            (s) => (
-              <div key={s} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                <Badge variant={STATUS_VARIANTS[s]}>{STATUS_LABELS[s]}</Badge>
-                {ordersLoading ? (
-                  <Skeleton className="h-4 w-6" />
-                ) : (
-                  <span className="font-semibold tabular-nums">{statusCounts[s]}</span>
-                )}
-              </div>
-            ),
-          )}
+          {ALL_ORDER_STATUSES.map((s) => (
+            <div key={s} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+              <Badge variant={STATUS_VARIANTS[s]}>{STATUS_LABELS[s]}</Badge>
+              {ordersLoading ? (
+                <Skeleton className="h-4 w-6" />
+              ) : (
+                <span className="font-semibold tabular-nums">{statusCounts[s]}</span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -190,10 +186,10 @@ export default function AdminDashboardPage() {
                 </TableRow>
               ) : (
                 recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">{order.id.slice(-8)}</TableCell>
+                  <TableRow key={order._id}>
+                    <TableCell className="font-mono text-xs">{order._id.slice(-8)}</TableCell>
                     <TableCell>
-                      {order.user.firstName} {order.user.lastName}
+                      {order.customer?.fullName ?? order.customer?.email ?? "—"}
                     </TableCell>
                     <TableCell className="tabular-nums">{formatVND(order.totalAmount)}</TableCell>
                     <TableCell>

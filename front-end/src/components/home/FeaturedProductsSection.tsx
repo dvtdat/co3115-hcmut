@@ -101,7 +101,7 @@ function LandingProductCard({ product }: LandingProductCardProps) {
           variant="outline"
           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground mt-1 w-full rounded-full"
           nativeButton={false}
-          render={<Link to="/products/$slug" params={{ slug: product.slug }} />}
+          render={<Link to="/products" />}
         >
           View Product
         </Button>

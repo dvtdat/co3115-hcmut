@@ -1,21 +1,38 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, ParseIntPipe, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth, ApiCreatedResponse, ApiOkResponse,
-  ApiOperation, ApiTags, getSchemaPath,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import {
-  CreateProductDto, UpdateProductDto,
-  CreateProductItemDto, UpdateProductItemDto,
+  CreateProductDto,
+  UpdateProductDto,
+  CreateProductItemDto,
+  UpdateProductItemDto,
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole, Product, ProductItem } from 'src/entities';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { CurrentUser, CurrentUserData } from 'src/common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  CurrentUserData,
+} from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('products')
 @Controller('products')
@@ -44,7 +61,13 @@ export class ProductController {
     @Query('search') search?: string,
     @Query('sort') sort?: string,
   ) {
-    return this.productService.findAll(pageSize, pageNumber, categoryId, search, sort);
+    return this.productService.findAll(
+      pageSize,
+      pageNumber,
+      categoryId,
+      search,
+      sort,
+    );
   }
 
   @Get(':id')
@@ -111,7 +134,10 @@ export class ProductController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a product item (admin)' })
   @ApiOkResponse({ type: ProductItem })
-  updateItem(@Param('itemId') itemId: string, @Body() dto: UpdateProductItemDto) {
+  updateItem(
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateProductItemDto,
+  ) {
     return this.productService.updateItem(itemId, dto);
   }
 

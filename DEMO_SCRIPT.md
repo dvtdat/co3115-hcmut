@@ -1,7 +1,8 @@
 # 🎬 Kịch Bản Demo - Electronic Store System (CO3115 HCMUT)
 
-> **Hướng dẫn quay clip demo toàn bộ tính năng hệ thống.**
-> Thời lượng ước tính: **8–12 phút.**
+> **Hướng dẫn quay clip demo End-to-End toàn bộ hệ thống.**
+> Thời lượng ước tính: **8–10 phút.**
+> **Luồng chính:** Admin kiểm tra hệ thống & tạo sản phẩm mới ➔ Khách hàng thấy sản phẩm, đặt mua ➔ Admin nhận đơn hàng và xử lý.
 
 ---
 
@@ -12,275 +13,98 @@
 | **Admin** | `admin@co3115.hcmut.edu.vn` | `Admin@123` |
 | **Customer (demo)** | `user@co3115.hcmut.edu.vn` | `User@123` |
 
-> Hoặc dùng tài khoản bạn đã tự đăng ký (ví dụ: `dodangkhoa250805@gmail.com`).
-
 ---
 
-## 🚀 Cách Khởi Động Hệ Thống
+## 🚀 Cách Khởi Động Hệ Thống Trước Khi Quay
 
 ```bash
-# Terminal 1 — Backend (NestJS + MongoDB)
+# Terminal 1 — Backend
 cd back-end
 npm run start:dev
 
-# Terminal 2 — Frontend (Vite + React)
+# Terminal 2 — Frontend
 cd front-end
 npm run dev
 ```
 
-- **Backend**: http://localhost:3300
-- **Frontend**: http://localhost:3000
-- **Swagger API Docs**: http://localhost:3300/api
+> **Lưu ý:** Nếu database bị trống, hãy chạy `cd back-end && npm run seed` để có sẵn dữ liệu test ban đầu.
 
 ---
 
-## PHẦN 1: GIAO DIỆN KHÁCH HÀNG (Customer / Guest)
+## 🎥 CHI TIẾT CÁC BƯỚC QUAY CLIP (THEO FLOW)
 
-### 1.1 Trang Chủ (Homepage)
-- Mở trình duyệt, vào `http://localhost:3000`
-- **Demo các phần:**
-  - ✅ Hero Section (banner giới thiệu cửa hàng)
-  - ✅ Benefits Section (các ưu điểm: miễn phí vận chuyển, bảo hành...)
-  - ✅ Testimonials Section (đánh giá khách hàng)
-  - ✅ Header full-width với Logo, thanh điều hướng (Home, Shop, About)
-  - ✅ Footer full-width
+### PHẦN 1: GIAO DIỆN ADMIN (Kiểm tra hệ thống & Tạo Sản Phẩm)
+*Mục đích: Chứng minh Admin quản lý được toàn bộ dữ liệu cửa hàng, có thể CRUD sản phẩm đầy đủ.*
 
-### 1.2 Đăng Ký Tài Khoản (Register)
-- Click nút **"Sign Up"** trên Header
-- **Điền thông tin:**
-  - Email (ví dụ: `demo@test.com`)
-  - Password
-  - Full Name
-  - Phone
-- Bấm **Register** → Hệ thống tạo tài khoản, tự động tạo Shopping Cart, redirect về trang Login
-- **Tính năng liên quan:** Mã hóa mật khẩu (bcrypt), mã hóa tên (AES encryption)
-
-### 1.3 Đăng Nhập (Login)
-- Nhập **Email** và **Password**
-- Bấm **Log in** → Hệ thống trả về JWT Access Token + Refresh Token
-- Redirect về trang chủ, Header hiển thị avatar/menu người dùng
-- **Tính năng liên quan:** JWT Authentication, Auto-refresh token khi hết hạn
-
-### 1.4 Duyệt Sản Phẩm (Shop / Products)
-- Click **"Shop"** trên thanh điều hướng → Vào trang `/products`
-- **Demo các tính năng:**
-  - ✅ Hiển thị danh sách sản phẩm dạng Grid
-  - ✅ **Phân trang (Pagination)**: Nút Prev / Next, hiển thị 10 sản phẩm/trang
-  - ✅ Hiển thị tên, giá (VNĐ), ảnh sản phẩm
-  - ✅ Click vào sản phẩm để xem chi tiết
-
-### 1.5 Chi Tiết Sản Phẩm (Product Detail)
-- Click vào một sản phẩm bất kỳ
-- **Demo các tính năng:**
-  - ✅ Breadcrumb điều hướng (Shop > Tên sản phẩm)
-  - ✅ Ảnh sản phẩm (full-size)
-  - ✅ Thông tin: Tên, Giá, Mô tả, Category
-  - ✅ Badge trạng thái kho: **In Stock** / **Only X left** / **Out of Stock**
-  - ✅ **Chọn Variant** (biến thể sản phẩm - ví dụ: 128GB, 256GB, 512GB với giá khác nhau)
-  - ✅ Chọn **Quantity** (số lượng) với nút +/−
-  - ✅ Nút **Add to Cart**
-
-### 1.6 Giỏ Hàng (Cart)
-- Click icon giỏ hàng trên Header → Vào trang `/cart`
-- **Demo các tính năng:**
-  - ✅ Danh sách sản phẩm trong giỏ (ảnh, tên, giá, số lượng)
-  - ✅ Tăng/giảm số lượng từng sản phẩm
-  - ✅ Xóa sản phẩm khỏi giỏ
-  - ✅ **Order Summary**: Tính tổng tiền tự động
-  - ✅ Nút **"Proceed to checkout"**
-
-### 1.7 Checkout (Đặt Hàng)
-> Quy trình 2 bước: Delivery → Review & Place Order
-
-#### Bước 1: Delivery (Chọn phương thức nhận hàng)
-- Chọn **Home delivery** hoặc **Store pickup**
-- Nếu chọn Home delivery:
-  - ✅ Shipping Address tự động điền từ Profile (trường `deliveryAccess`)
-  - ✅ Có thể sửa lại địa chỉ
-- Bấm **"Continue to review"**
-
-#### Bước 2: Review & Place Order
-- **Demo hiển thị:**
-  - ✅ Phương thức nhận hàng đã chọn
-  - ✅ Địa chỉ giao hàng
-  - ✅ Danh sách sản phẩm + số lượng + giá
-  - ✅ Tổng tiền
-- Bấm **"Place order"** → Đơn hàng được tạo → Redirect đến trang xác nhận
-
-### 1.8 Quản Lý Tài Khoản (My Account)
-
-#### Profile
-- Vào menu người dùng > **Profile**
-- **Demo các tính năng:**
-  - ✅ Xem/Sửa: Full Name, Phone, Default Delivery Address
-  - ✅ Đổi mật khẩu (nhập mật khẩu mới + xác nhận)
-  - ✅ Nút **Save changes**
-
-#### My Orders (Lịch sử đơn hàng)
-- Vào menu người dùng > **My Orders**
-- **Demo các tính năng:**
-  - ✅ Danh sách đơn hàng (Order ID, Total, Status, Date)
-  - ✅ Badge trạng thái màu sắc: Pending (xám), Confirmed (xanh), Shipping (xanh), Delivered (viền), Cancelled (đỏ)
-  - ✅ Click **"View"** để xem chi tiết đơn hàng
-  - ✅ **Order Status Timeline** (hiển thị tiến trình đơn hàng)
-  - ✅ Chi tiết sản phẩm trong đơn (ảnh, tên, số lượng, giá)
-  - ✅ **Hủy đơn hàng**: Nút Cancel (chỉ hiện khi status = Pending)
-
-### 1.9 Trang About
-- Click **"About"** trên thanh điều hướng
-- Hiển thị thông tin giới thiệu cửa hàng
-
-### 1.10 Đăng Xuất (Logout)
-- Click menu người dùng > **Log out**
-- Xóa token, redirect về trang Login
+1. **Đăng nhập Admin:** Mở `http://localhost:3000`, click **Sign In** và đăng nhập bằng tài khoản Admin.
+2. **Dashboard:**
+   - Khái quát các chỉ số: Total Revenue, Total Orders, bảng thống kê trạng thái.
+   - Chỉ ra danh sách Recent Orders đang hiển thị.
+3. **Quản lý Category:**
+   - Vào **Categories**, lướt xem danh sách.
+   - Thử tính năng ô Search để tìm kiếm.
+4. **Quản lý Customers:**
+   - Vào **Customers**, xem danh sách User.
+   - Demo bật/tắt (Toggle Active) một tài khoản khách hàng.
+   - Click **"View"** để xem thống kê (tổng đơn, tổng chi tiêu, lịch sử) của một khách hàng cụ thể.
+5. **Tạo Sản Phẩm Mới (QUAN TRỌNG):**
+   - Vào **Products**, lướt xem danh sách.
+   - Bấm **"New product"** và tạo một sản phẩm cực kỳ nổi bật để lát nữa khách hàng mua (Ví dụ: *"MacBook Pro M4 Max"*).
+   - Điền form: Name, Base Price, Stock, chọn Category, dán link Image URL. Bấm Create.
+   - **Tạo Variants (Biến thể):** Ở sản phẩm vừa tạo, bấm icon **Layers (xếp chồng)** ở cột Actions.
+   - Thêm 2 Variants với giá khác nhau (VD: bản RAM 36GB và bản RAM 128GB) để chứng minh tính năng biến thể.
+6. **Đăng xuất Admin:** Click Avatar góc trên cùng bên phải -> **Log out**.
 
 ---
 
-## PHẦN 2: GIAO DIỆN QUẢN TRỊ (Admin Panel)
+### PHẦN 2: GIAO DIỆN KHÁCH HÀNG (Duyệt web & Mua Sản Phẩm Vừa Tạo)
+*Mục đích: Chứng minh dữ liệu đồng bộ tức thời từ Admin sang khách hàng, quy trình Checkout hoạt động trơn tru.*
 
-> Đăng nhập bằng tài khoản Admin: `admin@co3115.hcmut.edu.vn` / `Admin@123`
-
-### 2.1 Dashboard (Tổng quan)
-- Vào `/admin/dashboard` (hoặc click **Dashboard** trên sidebar)
-- **Demo các thông số:**
-  - ✅ **Total Revenue**: Tổng doanh thu (tính từ đơn hàng không bị cancelled)
-  - ✅ **Total Orders**: Tổng số đơn hàng
-  - ✅ **Products**: Tổng số sản phẩm
-  - ✅ **Customers**: Tổng số khách hàng
-  - ✅ **Orders by Status**: Thống kê đơn hàng theo trạng thái (Pending, Confirmed, Shipping, Delivered, Cancelled)
-  - ✅ **Recent Orders**: Bảng 5 đơn hàng mới nhất
-
-### 2.2 Quản Lý Sản Phẩm (Products)
-- Click **Products** trên sidebar
-- **Demo các tính năng:**
-
-#### Danh sách sản phẩm
-  - ✅ Bảng sản phẩm: Image, Name, Category, Price, Stock, Actions
-  - ✅ **Tìm kiếm** sản phẩm theo tên/category
-  - ✅ **Phân trang** (10 sản phẩm/trang)
-  - ✅ Badge trạng thái kho: `Out of stock` (đỏ), `Low · X` (vàng), số lượng bình thường (xám)
-
-#### Tạo sản phẩm mới
-  - Bấm **"New product"**
-  - Điền: Name, Description, Base Price, Stock, Category (dropdown), Image URL
-  - Bấm **"Create product"**
-  - ✅ Hệ thống tự động tạo 1 Product Item (Variant) mặc định
-
-#### Sửa sản phẩm
-  - Bấm icon **bút chì (Edit)** → Dialog sửa thông tin → **"Save changes"**
-
-#### Xóa sản phẩm
-  - Bấm icon **thùng rác (Delete)** → Confirm dialog → **"Delete"**
-
-#### Quản lý Variants (Biến thể sản phẩm) ⭐
-  - Bấm icon **Layers** (hình các lớp xếp chồng) trên cột Actions
-  - **Dialog "Variants for ..." hiện ra:**
-    - ✅ Bảng danh sách Variants hiện tại (Price, Status)
-    - ✅ Xóa Variant
-    - ✅ **Thêm Variant mới**: Điền Price, chọn Status (Available / Out of Stock / Discontinued), Image URL (tùy chọn) → **"Add Variant"**
-
-### 2.3 Quản Lý Danh Mục (Categories)
-- Click **Categories** trên sidebar
-- **Demo các tính năng:**
-  - ✅ Bảng danh mục: Name, Description, Actions
-  - ✅ **Tìm kiếm** danh mục
-  - ✅ **Phân trang**
-  - ✅ **Tạo mới**: Bấm "New category" → Điền Name + Description → "Create category"
-  - ✅ **Sửa**: Bấm icon Edit → Sửa thông tin → "Save changes"
-  - ✅ **Xóa**: Bấm icon Delete → Confirm → "Delete"
-
-### 2.4 Quản Lý Đơn Hàng (Orders)
-- Click **Orders** trên sidebar
-- **Demo các tính năng:**
-  - ✅ Bảng đơn hàng: Order ID, Customer, Total, Status, Date, Action
-  - ✅ **Lọc theo trạng thái**: All / Pending / Confirmed / Shipping / Delivered / Cancelled
-  - ✅ **Phân trang**
-  - ✅ Bấm **"Manage"** → Dialog chi tiết đơn hàng:
-    - Thông tin: Order ID, Customer, Date, Status, Address
-    - Danh sách sản phẩm trong đơn (ảnh, tên, số lượng, đơn giá, thành tiền)
-    - Tổng tiền
-    - **Cập nhật trạng thái đơn hàng** (theo quy trình):
-      - `Pending` → `Confirmed` hoặc `Cancelled`
-      - `Confirmed` → `Shipping` hoặc `Cancelled`
-      - `Shipping` → `Delivered`
-      - `Delivered` / `Cancelled` → Trạng thái cuối, không thay đổi được
-
-### 2.5 Quản Lý Khách Hàng (Customers)
-- Click **Customers** trên sidebar
-- **Demo các tính năng:**
-  - ✅ Bảng khách hàng: Email, Role, Active (Toggle Switch), Action
-  - ✅ **Tìm kiếm** theo email
-  - ✅ **Phân trang**
-  - ✅ **Bật/Tắt tài khoản**: Toggle switch để activate/deactivate người dùng
-  - ✅ Bấm **"View"** → Dialog chi tiết khách hàng:
-    - Avatar + Email + Role
-    - Thống kê: Total orders, Total spend
-    - Bảng lịch sử đơn hàng của khách hàng đó
+1. **Khách hàng duyệt web (Guest):**
+   - Lướt qua trang chủ (Homepage): Hero banner, Benefits, Testimonials.
+   - Click menu **Shop** -> Phân trang và tìm thấy ngay sản phẩm *"MacBook Pro M4 Max"* mà Admin vừa tạo.
+2. **Đăng nhập / Đăng ký:**
+   - Khách hàng bấm vào sản phẩm sẽ thấy yêu cầu Login để mua.
+   - Tiến hành **Sign In** bằng tài khoản `user@co3115.hcmut.edu.vn`. (Có thể demo thao tác **Sign Up** một tài khoản hoàn toàn mới ngay lúc đó nếu muốn tăng thời lượng).
+3. **Mua hàng:**
+   - Vào trang chi tiết của sản phẩm vừa tạo.
+   - Thử click chọn qua lại các **Variants** để chứng minh giá có thay đổi khớp với thiết lập bên Admin.
+   - Chọn số lượng, bấm **"Add to Cart"**.
+4. **Checkout (Đặt hàng):**
+   - Bấm icon giỏ hàng góc trên phải -> Kiểm tra thông tin, bấm **"Proceed to checkout"**.
+   - **Bước 1 (Delivery):** Chọn "Home delivery". Địa chỉ sẽ tự lấy từ profile (có thể gõ thêm sửa lại). Bấm "Continue".
+   - **Bước 2 (Review):** Kiểm tra lại bill tổng tiền, bấm **"Place order"**.
+   - Chờ màn hình hiển thị mua hàng thành công.
+5. **Kiểm tra lịch sử:**
+   - Vào Profile -> **My Orders**.
+   - Thấy đơn hàng vừa đặt đang nằm đó với trạng thái **Pending (màu xám)**.
+6. **Đăng xuất Customer:** Click Avatar -> **Log out**.
 
 ---
 
-## PHẦN 3: CÁC TÍNH NĂNG KỸ THUẬT (Nếu cần demo sâu)
+### PHẦN 3: ADMIN NHẬN ĐƠN HÀNG VÀ XỬ LÝ
+*Mục đích: Chứng minh đơn hàng của khách lập tức được gửi về hệ thống Admin và quy trình đổi trạng thái đơn hàng.*
 
-### 3.1 Backend (NestJS)
-| Tính năng | Mô tả |
-|-----------|-------|
-| RESTful API | Đầy đủ CRUD cho Product, Category, Order, User |
-| JWT Auth | Access Token + Refresh Token |
-| Bcrypt | Mã hóa mật khẩu |
-| AES Encryption | Mã hóa thông tin nhạy cảm (fullName) |
-| MongoDB | Database với MikroORM |
-| Swagger | API Documentation tại `/api` |
-| Seed Data | Script tạo dữ liệu mẫu (`npm run seed`) |
-| Role-based Access | Phân quyền Admin vs Customer |
-| Soft Delete | Xóa mềm (đánh dấu `deletedAt`) |
-
-### 3.2 Frontend (React + Vite)
-| Tính năng | Mô tả |
-|-----------|-------|
-| TanStack Router | File-based routing, type-safe |
-| TanStack Query | Data fetching, caching, auto-refetch |
-| Zustand | State management (auth store) |
-| React Hook Form + Zod | Form validation |
-| Sonner | Toast notifications |
-| Responsive Design | Giao diện thích ứng mobile/desktop |
-| Skeleton Loading | Hiệu ứng loading cho mọi trang |
-| Pagination | Phân trang cho Products, Orders, Categories, Customers |
-
-### 3.3 Swagger API Documentation
-- Mở `http://localhost:3300/api` trên trình duyệt
-- Demo danh sách API endpoints theo module:
-  - Auth (`/auth/login`, `/auth/register`, `/auth/refresh`)
-  - Products (`/products`, `/products/:id`, `/products/:id/items`)
-  - Categories (`/categories`)
-  - Cart (`/cart`, `/cart/items`)
-  - Orders (`/orders`, `/orders/my-orders`)
-  - Users (`/users`)
+1. **Đăng nhập Admin:** Đăng nhập lại bằng tài khoản Admin.
+2. **Kiểm tra Dashboard:**
+   - Chỉ ra **Total Orders** đã tự tăng thêm 1.
+   - Đơn hàng mới nhất của khách hàng khi nãy đã lập tức xuất hiện trên cùng trong bảng **Recent Orders**.
+3. **Xử lý đơn hàng (Orders):**
+   - Vào tab **Orders** bên sidebar.
+   - Thấy đơn hàng đang trạng thái `Pending`.
+   - Bấm **"Manage"** để mở chi tiết đơn.
+   - Cùng check lại thông tin: Tên khách hàng, địa chỉ giao hàng, sản phẩm (MacBook), thành tiền -> Tất cả đều chuẩn xác.
+   - Bấm nút **"Mark as Confirmed"** -> Trạng thái đổi sang màu Xanh.
+4. **Cập nhật luồng giao hàng:**
+   - Bấm tiếp **"Mark as Shipping"**.
+   - Cuối cùng bấm **"Mark as Delivered"** để hoàn tất chu trình của một đơn hàng.
 
 ---
 
-## 📌 Gợi Ý Thứ Tự Quay Clip
+## 🎉 KẾT THÚC DEMO
 
-1. **Khởi động hệ thống** (Backend + Frontend) — 30s
-2. **Guest browsing**: Homepage → Shop → Product Detail — 1 phút
-3. **Đăng ký tài khoản** mới — 1 phút
-4. **Đăng nhập** — 30s
-5. **Mua hàng**: Chọn sản phẩm → Add to Cart → Cart → Checkout → Place Order — 2 phút
-6. **Xem đơn hàng**: My Orders → View Order Detail — 1 phút
-7. **Cập nhật Profile** — 30s
-8. **Đăng xuất** → **Đăng nhập Admin** — 30s
-9. **Admin Dashboard**: Xem tổng quan — 30s
-10. **Admin Products**: Tạo mới + Thêm Variant + Sửa + Xóa — 2 phút
-11. **Admin Categories**: CRUD — 1 phút
-12. **Admin Orders**: Lọc + Manage + Cập nhật trạng thái — 1 phút
-13. **Admin Customers**: Xem + Toggle Active — 30s
-14. **(Optional) Swagger API Docs** — 30s
-
----
-
-## ⚠️ Lưu Ý Trước Khi Quay
-
-1. **Đảm bảo MongoDB đang chạy** (MongoDB Compass hoặc `mongod` service)
-2. **Chạy seed data** nếu database trống: `cd back-end && npm run seed`
-3. **Clear browser cache** nếu gặp lỗi token cũ
-4. **Đăng nhập lại** sau khi sửa dữ liệu trực tiếp trong MongoDB (để frontend lấy data mới)
-5. Nếu sản phẩm hiện "Out of Stock" dù còn hàng → Kiểm tra xem sản phẩm đó đã có Variant chưa (vào Admin > Products > icon Layers)
+**Với Flow này, bạn có thể chứng minh được:**
+✅ **Toàn vẹn dữ liệu:** Thêm sản phẩm bên admin hiện ngay bên user.
+✅ **Quản lý kho chi tiết:** Hệ thống hỗ trợ xử lý Variant (nhiều giá, cấu hình) cực tốt.
+✅ **Xử lý giao dịch trọn vẹn:** User đăng ký -> Thêm giỏ hàng -> Thanh toán -> Order History.
+✅ **Admin Control:** Đơn hàng bắn về Admin -> Admin xem xét -> Xử lý trạng thái từ đầu tới cuối.

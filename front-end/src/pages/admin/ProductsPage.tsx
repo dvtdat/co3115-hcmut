@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { Product } from "@/hooks/use-products";
 import {
   useProducts,
+  useProduct,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
@@ -328,8 +329,11 @@ function DeleteProductDialog({ product }: { product: Product }) {
 
 function ManageVariantsDialog({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
+  const { data: detail, isLoading: detailLoading } = useProduct(open ? product._id : "");
   const createMutation = useCreateProductItem();
   const deleteMutation = useDeleteProductItem();
+
+  const items = detail?.items ?? product.items ?? [];
 
   const form = useForm({
     defaultValues: {
@@ -382,14 +386,22 @@ function ManageVariantsDialog({ product }: { product: Product }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {product.items?.length === 0 ? (
+                  {detailLoading ? (
+                    Array.from({ length: 2 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell />
+                      </TableRow>
+                    ))
+                  ) : items.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={3} className="text-muted-foreground py-4 text-center">
                         No variants found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    product.items?.map((item) => (
+                    items.map((item) => (
                       <TableRow key={item._id}>
                         <TableCell>{formatVND(item.price)}</TableCell>
                         <TableCell>

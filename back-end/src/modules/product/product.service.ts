@@ -86,7 +86,7 @@ export class ProductService {
       limit: pageSize,
       offset: (pageNumber - 1) * pageSize,
       orderBy,
-      populate: ['category'],
+      populate: ['category', 'productItems'],
     });
     return {
       data,

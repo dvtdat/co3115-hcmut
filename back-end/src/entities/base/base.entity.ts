@@ -1,7 +1,8 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property, Filter } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+@Filter({ name: 'softDelete', cond: { deletedAt: null }, default: true })
 @Entity({ abstract: true })
 export abstract class BaseEntity {
   @ApiProperty({ type: 'string', example: '507f1f77bcf86cd799439011' })

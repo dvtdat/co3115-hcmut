@@ -1,7 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { lazy } from "react";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
-  component: lazy(async () => import("../../../pages/admin/ProductsPage")),
-  pendingComponent: () => <span>Loading...</span>,
+  component: Outlet,
 });

@@ -95,7 +95,10 @@ export class ProductService {
   async findOne(id: string) {
     const product = await this.productRepo.findOne(
       { _id: new ObjectId(id), deletedAt: null },
-      { populate: ['category', 'productItems'] },
+      {
+        populate: ['category', 'productItems'],
+        populateWhere: { productItems: { deletedAt: null } },
+      },
     );
     if (!product) throw new NotFoundException('Product not found');
     return product;

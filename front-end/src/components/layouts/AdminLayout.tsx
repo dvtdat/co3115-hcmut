@@ -120,8 +120,11 @@ function AdminSidebar() {
 
 export default function AdminLayout() {
   const { location } = useRouterState();
-  const lastSegment = location.pathname.split("/").filter(Boolean).at(-1) ?? "admin";
-  const pageTitle = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
+  const segments = location.pathname.split("/").filter(Boolean);
+  const lastSegment = segments.at(-1) ?? "admin";
+  const isId = /^[a-f0-9]{24}$/i.test(lastSegment);
+  const titleSegment = isId ? (segments.at(-2) ?? "admin") : lastSegment;
+  const pageTitle = titleSegment.charAt(0).toUpperCase() + titleSegment.slice(1);
 
   return (
     <SidebarProvider>

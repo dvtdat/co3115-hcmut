@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/use-products";
+import type { ProductItem } from "@/hooks/use-products";
 import {
   useProducts,
   useProduct,
@@ -12,6 +13,7 @@ import {
   useUpdateProduct,
   useDeleteProduct,
   useCreateProductItem,
+  useUpdateProductItem,
   useDeleteProductItem,
 } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-categories";
@@ -326,40 +328,223 @@ function DeleteProductDialog({ product }: { product: Product }) {
   );
 }
 
+// ── Variant helpers ────────────────────────────────────────────────────────
+
+const VARIANT_STATUS_LABELS: Record<string, string> = {
+  available: "Available",
+  out_of_stock: "Out of stock",
+  discontinued: "Discontinued",
+};
+
+function VariantStatusBadge({ status }: { status: string }) {
+  if (status === "available")
+    return (
+      <Badge
+        variant="outline"
+        className="border-emerald-500/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+      >
+        Available
+      </Badge>
+    );
+  if (status === "out_of_stock") return <Badge variant="destructive">Out of stock</Badge>;
+  return <Badge variant="outline" className="text-muted-foreground">Discontinued</Badge>;
+}
+
+const variantSchema = z.object({
+  specificPrice: z.number({ error: "Price must be a number" }).min(0, "Price must be ≥ 0"),
+  imageURL: z.string().optional(),
+  status: z.enum(["available", "out_of_stock", "discontinued"]),
+});
+
+type VariantValues = z.infer<typeof variantSchema>;
+
+// ── VariantFormDialog ──────────────────────────────────────────────────────
+
+interface VariantFormDialogProps {
+  productId: string;
+  editTarget?: ProductItem;
+  defaultPrice?: number;
+  trigger: (onOpen: () => void) => React.ReactNode;
+}
+
+function VariantFormDialog({ productId, editTarget, defaultPrice = 0, trigger }: VariantFormDialogProps) {
+  const [open, setOpen] = useState(false);
+  const createMutation = useCreateProductItem();
+  const updateMutation = useUpdateProductItem();
+
+  const form = useForm<VariantValues>({
+    resolver: zodResolver(variantSchema) as Resolver<VariantValues>,
+    defaultValues: { specificPrice: defaultPrice, imageURL: "", status: "available" },
+  });
+
+  function handleOpen(next: boolean) {
+    if (next) {
+      form.reset({
+        specificPrice: editTarget?.price ?? defaultPrice,
+        imageURL: editTarget?.image ?? "",
+        status: (editTarget?.status as VariantValues["status"]) ?? "available",
+      });
+    }
+    setOpen(next);
+  }
+
+  const onSubmit: SubmitHandler<VariantValues> = async (values) => {
+    const body = {
+      specificPrice: values.specificPrice,
+      imageURL: values.imageURL?.trim() || undefined,
+      status: values.status,
+    };
+    try {
+      if (editTarget) {
+        await updateMutation.mutateAsync({ itemId: editTarget._id, body });
+        toast.success("Variant updated.");
+      } else {
+        await createMutation.mutateAsync({ productId, body });
+        toast.success("Variant added.");
+      }
+      setOpen(false);
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <>
+      {trigger(() => handleOpen(true))}
+      <Dialog open={open} onOpenChange={handleOpen}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>{editTarget ? "Edit variant" : "Add variant"}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <form
+              id="variant-form"
+              onSubmit={(e) => { void form.handleSubmit(onSubmit)(e); }}
+              className="grid gap-4"
+            >
+              <div className="grid gap-1.5">
+                <Label htmlFor="variant-price">
+                  Price (₫) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="variant-price"
+                  type="number"
+                  min={0}
+                  {...form.register("specificPrice", { valueAsNumber: true })}
+                />
+                {form.formState.errors.specificPrice && (
+                  <p className="text-destructive text-xs">
+                    {form.formState.errors.specificPrice.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="variant-image">Image URL</Label>
+                <Input
+                  id="variant-image"
+                  {...form.register("imageURL")}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Status</Label>
+                <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      items={VARIANT_STATUS_LABELS}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(["available", "out_of_stock", "discontinued"] as const).map((s) => (
+                          <SelectItem key={s} value={s} label={VARIANT_STATUS_LABELS[s]}>
+                            {VARIANT_STATUS_LABELS[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </form>
+          </DialogBody>
+          <DialogFooter showCloseButton>
+            <Button type="submit" form="variant-form" disabled={isPending}>
+              {isPending ? "Saving…" : editTarget ? "Save changes" : "Add variant"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// ── DeleteVariantDialog ────────────────────────────────────────────────────
+
+function DeleteVariantDialog({ item }: { item: ProductItem }) {
+  const [open, setOpen] = useState(false);
+  const deleteMutation = useDeleteProductItem();
+
+  async function handleDelete() {
+    try {
+      await deleteMutation.mutateAsync(item._id);
+      toast.success("Variant deleted.");
+      setOpen(false);
+    } catch {
+      toast.error("Failed to delete variant.");
+    }
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground hover:text-destructive"
+          />
+        }
+      >
+        <Trash2 className="size-3.5" />
+      </AlertDialogTrigger>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this variant?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Price: {formatVND(item.price)}. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={deleteMutation.isPending}
+            onClick={() => { void handleDelete(); }}
+          >
+            {deleteMutation.isPending ? "Deleting…" : "Delete"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 // ── ManageVariantsDialog ───────────────────────────────────────────────────
 
 function ManageVariantsDialog({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
-  const { data: detail, isLoading: detailLoading } = useProduct(open ? product._id : "");
-  const createMutation = useCreateProductItem();
-  const deleteMutation = useDeleteProductItem();
-
-  const items = detail?.items ?? product.items ?? [];
-
-  const form = useForm({
-    defaultValues: {
-      price: product.price,
-      image: "",
-      status: "available",
-    },
-  });
-
-  const onSubmit = async (values: any) => {
-    try {
-      await createMutation.mutateAsync({
-        productId: product._id,
-        body: { 
-          specificPrice: values.price, 
-          imageURL: values.image || undefined, 
-          status: values.status as any
-        },
-      });
-      toast.success("Variant added.");
-      form.reset({ price: product.price, image: "", status: "available" });
-    } catch {
-      toast.error("Failed to add variant.");
-    }
-  };
+  const { data: detail, isLoading } = useProduct(open ? product._id : "");
+  const items = detail?.items ?? [];
 
   return (
     <>
@@ -372,55 +557,74 @@ function ManageVariantsDialog({ product }: { product: Product }) {
         <Layers className="size-3.5" />
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-[700px]">
+        <DialogContent className="max-h-[85dvh] sm:max-w-[640px]">
           <DialogHeader>
-            <DialogTitle>Variants for "{product.name}"</DialogTitle>
+            <DialogTitle>Variants — {product.name}</DialogTitle>
           </DialogHeader>
-          <DialogBody className="space-y-6">
+          <DialogBody className="space-y-4">
             <div className="rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-14">Image</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="w-20 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {detailLoading ? (
+                  {isLoading ? (
                     Array.from({ length: 2 }).map((_, i) => (
                       <TableRow key={i}>
+                        <TableCell><Skeleton className="size-8 rounded-md" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                         <TableCell />
                       </TableRow>
                     ))
                   ) : items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-muted-foreground py-4 text-center">
-                        No variants found.
+                      <TableCell colSpan={4} className="text-muted-foreground py-8 text-center text-sm">
+                        No variants yet. Add the first one below.
                       </TableCell>
                     </TableRow>
                   ) : (
                     items.map((item) => (
                       <TableRow key={item._id}>
-                        <TableCell>{formatVND(item.price)}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{item.status}</Badge>
+                          <div className="bg-muted flex size-8 items-center justify-center overflow-hidden rounded-md">
+                            {item.image ? (
+                              <img src={item.image} alt="variant" className="size-full object-cover" />
+                            ) : (
+                              <ImageOff className="text-muted-foreground/40 size-3.5" />
+                            )}
+                          </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={async () => {
-                              if (confirm("Delete variant?")) {
-                                await deleteMutation.mutateAsync(item._id);
-                                toast.success("Variant deleted.");
-                              }
-                            }}
-                          >
-                            <Trash2 className="text-destructive size-3.5" />
-                          </Button>
+                        <TableCell className="tabular-nums font-medium">
+                          {formatVND(item.price)}
+                        </TableCell>
+                        <TableCell>
+                          <VariantStatusBadge status={item.status} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <VariantFormDialog
+                              productId={product._id}
+                              editTarget={item}
+                              defaultPrice={product.price}
+                              trigger={(onOpen) => (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="text-muted-foreground"
+                                  onClick={onOpen}
+                                >
+                                  <Pencil className="size-3.5" />
+                                </Button>
+                              )}
+                            />
+                            <DeleteVariantDialog item={item} />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -429,40 +633,20 @@ function ManageVariantsDialog({ product }: { product: Product }) {
               </Table>
             </div>
 
-            <div className="bg-muted/30 space-y-3 rounded-xl border p-4">
-              <h3 className="text-sm font-semibold">Add New Variant</h3>
-              <form
-                onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}
-                className="grid items-end gap-4 sm:grid-cols-4"
-              >
-                <div className="grid gap-1.5 sm:col-span-1">
-                  <Label>Price</Label>
-                  <Input
-                    type="number"
-                    {...form.register("price", { valueAsNumber: true })}
-                    min={0}
-                    required
-                  />
-                </div>
-                <div className="grid gap-1.5 sm:col-span-1">
-                  <Label>Status</Label>
-                  <select
-                    className="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors"
-                    {...form.register("status")}
-                  >
-                    <option value="available">Available</option>
-                    <option value="out_of_stock">Out of Stock</option>
-                    <option value="discontinued">Discontinued</option>
-                  </select>
-                </div>
-                <div className="grid gap-1.5 sm:col-span-1">
-                  <Label>Image URL (Optional)</Label>
-                  <Input {...form.register("image")} placeholder="https..." />
-                </div>
-                <Button type="submit" disabled={createMutation.isPending} className="sm:col-span-1">
-                  {createMutation.isPending ? "Adding..." : "Add Variant"}
-                </Button>
-              </form>
+            <div className="border-t pt-4">
+              <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wide">
+                Add new variant
+              </p>
+              <VariantFormDialog
+                productId={product._id}
+                defaultPrice={product.price}
+                trigger={(onOpen) => (
+                  <Button size="sm" onClick={onOpen}>
+                    <Plus className="mr-1.5 size-4" />
+                    Add variant
+                  </Button>
+                )}
+              />
             </div>
           </DialogBody>
         </DialogContent>

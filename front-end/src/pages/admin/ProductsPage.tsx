@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "@tanstack/react-router";
 import { useForm, Controller, type SubmitHandler, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -441,7 +442,15 @@ export default function AdminProductsPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      to="/admin/products/$id"
+                      params={{ id: product._id }}
+                      className="hover:underline"
+                    >
+                      {product.name}
+                    </Link>
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline">{product.category.name}</Badge>
                   </TableCell>

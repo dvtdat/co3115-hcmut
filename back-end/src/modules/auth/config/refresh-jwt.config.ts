@@ -9,6 +9,6 @@ export default registerAs(
   'refresh-jwt',
   (): JwtSignOptions => ({
     secret: process.env.REFRESH_JWT_SECRET,
-    expiresIn: process.env.REFRESH_JWT_EXPIRES_IN as StringValue,
+    expiresIn: (process.env.REFRESH_JWT_EXPIRES_IN ?? '7d') as StringValue,
   }),
 );

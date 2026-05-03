@@ -138,8 +138,8 @@ export function useCreateProductItem() {
       productId: string;
       body: Parameters<typeof productApi.createItem>[1];
     }) => productApi.createItem(productId, body),
-    onSuccess: (_data, { productId }) =>
-      qc.invalidateQueries({ queryKey: ["products", productId] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["products"] }),
   });
 }
 

@@ -169,7 +169,10 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
               onClick={() => { void handleAddToCart(); }}
             >
               {addCartItem.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {outOfStock ? "Out of Stock" : addCartItem.isPending ? "Adding..." : "Add to Cart"}
+              {product.stock > 0 && availableItems.length === 0 
+                ? "Error: No variations configured" 
+                : outOfStock ? "Out of Stock" 
+                : addCartItem.isPending ? "Adding..." : "Add to Cart"}
             </Button>
           </div>
         </div>

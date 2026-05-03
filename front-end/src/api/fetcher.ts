@@ -7,7 +7,7 @@
  */
 
 import { env } from "@/env";
-import { TOKEN_KEY } from "@/api/client";
+import { TOKEN_KEY } from "@/services/auth";
 
 const BASE = env.apiUrl;
 

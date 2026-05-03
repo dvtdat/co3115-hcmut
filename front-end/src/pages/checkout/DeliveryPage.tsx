@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Truck, Store } from "lucide-react";
 import { shippingInfoSchema, type ShippingInfoValues, RECEIVING_METHODS } from "@/schema/checkout/shippingInfo";
 import { useCart } from "@/hooks/use-cart";
+import { useAuthStore } from "@/store/authStore";
 import { StepIndicator } from "@/components/checkout/StepIndicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,11 @@ export default function DeliveryPage() {
   const navigate = useNavigate();
   const { data: cart, isLoading: cartLoading, isError: cartError } = useCart();
 
+  const user = useAuthStore((state) => state.user);
+
   const { register, handleSubmit, control, watch, formState: { errors } } = useForm<ShippingInfoValues>({
     resolver: zodResolver(shippingInfoSchema),
-    defaultValues: { receivingMethod: "delivery", shippingAddress: "" },
+    defaultValues: { receivingMethod: "delivery", shippingAddress: user?.deliveryAccess ?? "" },
   });
 
   const receivingMethod = watch("receivingMethod");

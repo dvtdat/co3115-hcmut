@@ -98,7 +98,7 @@ export default function ReviewPage({ shippingInfo }: ReviewPageProps) {
         </div>
 
         <div className="text-muted-foreground rounded-xl border border-dashed p-4 text-sm">
-          Payment via bank transfer. You will receive bank details on the next screen.
+          Your order will be processed immediately after placement.
         </div>
 
         <div className="flex gap-3">

@@ -1,7 +1,7 @@
 const STEPS = [
   { id: 1, label: "Delivery" },
   { id: 2, label: "Review" },
-  { id: 3, label: "Payment info" },
+  { id: 3, label: "Done" },
 ] as const;
 
 interface StepIndicatorProps {

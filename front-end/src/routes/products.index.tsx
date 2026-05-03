@@ -7,6 +7,7 @@ const ProductsPage = lazy(async () => import("@/pages/ProductsPage"));
 
 const searchSchema = z.object({
   q: z.string().optional(),
+  page: z.coerce.number().optional().catch(1),
 });
 
 function PageFallback() {
@@ -23,10 +24,10 @@ function PageFallback() {
 }
 
 function ProductsPageRoute() {
-  const { q } = Route.useSearch();
+  const { q, page } = Route.useSearch();
   return (
     <Suspense fallback={<PageFallback />}>
-      <ProductsPage q={q} />
+      <ProductsPage q={q} page={page} />
     </Suspense>
   );
 }

@@ -60,7 +60,7 @@ export default function RootLayout() {
     <div className="bg-background flex min-h-screen flex-col">
       {/* ── Navbar ── */}
       <header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
-        <nav className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
+        <nav className="flex h-14 w-full items-center justify-between gap-4 px-4 sm:px-6">
           {/* Left — Logo + desktop nav */}
           <div className="flex shrink-0 items-center gap-6">
             <Link to="/" className="text-primary flex items-center gap-1.5 font-semibold">
@@ -222,7 +222,7 @@ export default function RootLayout() {
 
       {/* ── Footer ── */}
       <footer className="bg-background border-t">
-        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="flex h-12 w-full items-center justify-between px-4 sm:px-6">
           <span className="text-primary flex items-center gap-1.5 text-sm font-semibold">
             <Cpu className="size-4" />
             TechMart

@@ -160,7 +160,7 @@ function OrderSummary({ subtotal, itemCount }: OrderSummaryProps) {
         <span>{formatVND(subtotal)}</span>
       </div>
 
-      <Button size="lg" className="w-full" render={<a href="/checkout" />}>
+      <Button size="lg" className="w-full" nativeButton={false} render={<a href="/checkout" />}>
         Proceed to Checkout
       </Button>
     </div>
@@ -200,7 +200,7 @@ function EmptyCart() {
       <ShoppingCart className="text-muted-foreground/30 mx-auto size-12" />
       <p className="mt-4 text-lg font-medium">Your cart is empty</p>
       <p className="text-muted-foreground mt-1 text-sm">Add some products to get started.</p>
-      <Button className="mt-6" render={<a href="/products" />}>
+      <Button className="mt-6" nativeButton={false} render={<a href="/products" />}>
         Browse Products
       </Button>
     </div>
@@ -215,7 +215,7 @@ function UnauthenticatedCart() {
       <ShoppingCart className="text-muted-foreground/30 mx-auto size-12" />
       <p className="mt-4 text-lg font-medium">Sign in to view your cart</p>
       <p className="text-muted-foreground mt-1 text-sm">Your cart is saved to your account.</p>
-      <Button className="mt-6" render={<a href="/login" />}>
+      <Button className="mt-6" nativeButton={false} render={<a href="/login" />}>
         Sign In
       </Button>
     </div>

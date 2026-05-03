@@ -1,45 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { Copy, CheckCircle2, ShoppingBag } from "lucide-react";
+import { CheckCircle2, ShoppingBag } from "lucide-react";
 import { useOrder } from "@/hooks/use-orders";
 import { StepIndicator } from "@/components/checkout/StepIndicator";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const BANK_ACCOUNT = "0123456789";
-const BANK_NAME = "Vietcombank";
-const ACCOUNT_NAME = "CONG TY TNHH CO3115 HCMUT";
 
-function formatVND(amount: number) {
-  return `${amount.toLocaleString("vi-VN")} ₫`;
-}
-
-function CopyField({ label, value }: { label: string; value: string }) {
-  function handleCopy() {
-    void navigator.clipboard.writeText(value);
-    toast.success(`${label} copied.`);
-  }
-  return (
-    <div className="bg-muted/50 flex items-center justify-between gap-4 rounded-lg px-3.5 py-2.5">
-      <div className="min-w-0">
-        <p className="text-muted-foreground text-xs">{label}</p>
-        <p className="truncate text-sm font-medium">{value}</p>
-      </div>
-      <Button variant="ghost" size="icon-sm" aria-label={`Copy ${label}`} onClick={handleCopy} className="text-muted-foreground hover:text-foreground shrink-0">
-        <Copy className="size-3.5" />
-      </Button>
-    </div>
-  );
-}
 
 interface PaymentPageProps {
   orderId: string;
 }
 
 export default function PaymentPage({ orderId }: PaymentPageProps) {
-  const { data: order, isLoading } = useOrder(orderId);
-  const memo = `THANHTOAN ${orderId}`;
+  const { isLoading } = useOrder(orderId);
 
   if (isLoading) {
     return (
@@ -66,21 +39,7 @@ export default function PaymentPage({ orderId }: PaymentPageProps) {
           </div>
 
           <p className="text-muted-foreground mb-4 text-sm">
-            Please complete payment via bank transfer. Your order will be confirmed once payment is received.
-          </p>
-
-          <div className="space-y-2">
-            <CopyField label="Bank" value={BANK_NAME} />
-            <CopyField label="Account number" value={BANK_ACCOUNT} />
-            <CopyField label="Account name" value={ACCOUNT_NAME} />
-            <CopyField label="Amount" value={order ? formatVND(order.totalAmount) : "—"} />
-            <CopyField label="Transfer memo" value={memo} />
-          </div>
-
-          <Separator className="my-4" />
-
-          <p className="text-muted-foreground text-xs">
-            Include the exact memo <span className="text-foreground font-mono font-medium">{memo}</span> in your transfer so we can match your payment.
+            Your order has been placed successfully. We will process it shortly.
           </p>
         </div>
 

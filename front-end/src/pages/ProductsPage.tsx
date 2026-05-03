@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { Loader2, X } from "lucide-react";
+import { useNavigate, Link } from "@tanstack/react-router";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useInfiniteProducts } from "@/hooks/use-products";
+import { useProducts } from "@/hooks/use-products";
 
 interface ProductsPageProps {
   q?: string;
+  page?: number;
 }
 
 function ProductGridSkeleton() {
@@ -27,44 +27,20 @@ function ProductGridSkeleton() {
   );
 }
 
-export default function ProductsPage({ q }: ProductsPageProps) {
+export default function ProductsPage({ q, page = 1 }: ProductsPageProps) {
   const navigate = useNavigate({ from: "/products/" });
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, isError, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useInfiniteProducts();
+  const { data, isLoading, isError } = useProducts({
+    search: q?.trim(),
+    pageNumber: page,
+    pageSize: 10,
+  });
 
-  const allProducts = useMemo(() => data?.pages.flatMap((p) => p.data ?? []) ?? [], [data]);
-
-  const products = useMemo(() => {
-    const term = q?.trim().toLowerCase();
-    if (!term) return allProducts;
-    return allProducts.filter(
-      (p) => p.name.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term),
-    );
-  }, [allProducts, q]);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const products = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
   function handleClear() {
-    void navigate({ search: { q: undefined } });
+    void navigate({ search: { q: undefined, page: 1 } });
   }
 
   return (
@@ -97,20 +73,35 @@ export default function ProductsPage({ q }: ProductsPageProps) {
             {q?.trim() ? `No products found for "${q}".` : "No products found."}
           </p>
         )}
-
-        {isFetchingNextPage && <ProductGridSkeleton />}
       </div>
 
-      {/* Intersection sentinel — triggers next page fetch */}
-      <div ref={sentinelRef} className="h-1" />
+      {!isLoading && !isError && totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            nativeButton={false}
+            render={<Link to="/products" search={{ q, page: page - 1 }} />}
+          >
+            <ChevronLeft className="mr-1 size-4" />
+            Prev
+          </Button>
+          
+          <div className="text-muted-foreground px-4 text-sm font-medium">
+            Page {page} of {totalPages}
+          </div>
 
-      {!hasNextPage && !isLoading && products.length > 0 && (
-        <p className="text-muted-foreground mt-8 text-center text-sm">All products loaded</p>
-      )}
-
-      {isFetchingNextPage && (
-        <div className="mt-6 flex justify-center">
-          <Loader2 className="text-muted-foreground size-5 animate-spin" />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            nativeButton={false}
+            render={<Link to="/products" search={{ q, page: page + 1 }} />}
+          >
+            Next
+            <ChevronRight className="ml-1 size-4" />
+          </Button>
         </div>
       )}
     </div>

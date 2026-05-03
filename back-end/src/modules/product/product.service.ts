@@ -42,7 +42,12 @@ export class ProductService {
     product.stockQuantity = dto.stockQuantity;
     product.defaultImage = dto.defaultImage;
 
+    const defaultItem = new ProductItem(dto.basePrice, product);
+    defaultItem.imageURL = dto.defaultImage;
+    defaultItem.status = ProductItemStatus.AVAILABLE;
+
     em.persist(product);
+    em.persist(defaultItem);
     await em.flush();
     return product;
   }

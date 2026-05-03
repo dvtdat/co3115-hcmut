@@ -9,6 +9,8 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useCreateProductItem,
+  useDeleteProductItem,
 } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-categories";
 import TablePagination from "@/components/TablePagination";
@@ -52,7 +54,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ImageOff, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ImageOff, Layers, Pencil, Plus, Search, Trash2 } from "lucide-react";
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -322,6 +324,140 @@ function DeleteProductDialog({ product }: { product: Product }) {
   );
 }
 
+// ── ManageVariantsDialog ───────────────────────────────────────────────────
+
+function ManageVariantsDialog({ product }: { product: Product }) {
+  const [open, setOpen] = useState(false);
+  const createMutation = useCreateProductItem();
+  const deleteMutation = useDeleteProductItem();
+
+  const form = useForm({
+    defaultValues: {
+      price: product.price,
+      image: "",
+      status: "available",
+    },
+  });
+
+  const onSubmit = async (values: any) => {
+    try {
+      await createMutation.mutateAsync({
+        productId: product._id,
+        body: { 
+          specificPrice: values.price, 
+          imageURL: values.image || undefined, 
+          status: values.status as any
+        },
+      });
+      toast.success("Variant added.");
+      form.reset({ price: product.price, image: "", status: "available" });
+    } catch {
+      toast.error("Failed to add variant.");
+    }
+  };
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="text-muted-foreground hover:text-primary"
+        onClick={() => setOpen(true)}
+      >
+        <Layers className="size-3.5" />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Variants for "{product.name}"</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="space-y-6">
+            <div className="rounded-xl border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {product.items?.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-muted-foreground py-4 text-center">
+                        No variants found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    product.items?.map((item) => (
+                      <TableRow key={item._id}>
+                        <TableCell>{formatVND(item.price)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={async () => {
+                              if (confirm("Delete variant?")) {
+                                await deleteMutation.mutateAsync(item._id);
+                                toast.success("Variant deleted.");
+                              }
+                            }}
+                          >
+                            <Trash2 className="text-destructive size-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="bg-muted/30 space-y-3 rounded-xl border p-4">
+              <h3 className="text-sm font-semibold">Add New Variant</h3>
+              <form
+                onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}
+                className="grid items-end gap-4 sm:grid-cols-4"
+              >
+                <div className="grid gap-1.5 sm:col-span-1">
+                  <Label>Price</Label>
+                  <Input
+                    type="number"
+                    {...form.register("price", { valueAsNumber: true })}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div className="grid gap-1.5 sm:col-span-1">
+                  <Label>Status</Label>
+                  <select
+                    className="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors"
+                    {...form.register("status")}
+                  >
+                    <option value="available">Available</option>
+                    <option value="out_of_stock">Out of Stock</option>
+                    <option value="discontinued">Discontinued</option>
+                  </select>
+                </div>
+                <div className="grid gap-1.5 sm:col-span-1">
+                  <Label>Image URL (Optional)</Label>
+                  <Input {...form.register("image")} placeholder="https..." />
+                </div>
+                <Button type="submit" disabled={createMutation.isPending} className="sm:col-span-1">
+                  {createMutation.isPending ? "Adding..." : "Add Variant"}
+                </Button>
+              </form>
+            </div>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 // ── AdminProductsPage ──────────────────────────────────────────────────────
 
 const ADMIN_PAGE_SIZE = 10;
@@ -462,6 +598,7 @@ export default function AdminProductsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
+                      <ManageVariantsDialog product={product} />
                       <ProductFormDialog
                         editTarget={product}
                         trigger={(onOpen) => (

@@ -1,10 +1,8 @@
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths } from "./schema.d.ts";
 import { env } from "@/env";
-import { logout as clearAuthStorage } from "@/services/auth";
+import { logout as clearAuthStorage, TOKEN_KEY } from "@/services/auth";
 import { router } from "@/router";
-
-export const TOKEN_KEY = "access_token";
 
 const client = createClient<paths>({
   baseUrl: env.apiUrl,
